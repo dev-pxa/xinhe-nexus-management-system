@@ -9,8 +9,14 @@ export default function LoginPage() {
     <div className={styles.loginPage}>
       <div className={styles.loginCard}>
         <LoginForm
-          title="芯河智能"
-          subTitle="AI 一体化 ERP · CRM · OA 管理平台"
+          title={
+            <>
+              芯河智枢——
+              <br />
+              AI 一体化经营协同平台
+            </>
+          }
+          subTitle="Xinhe Nexus"
           containerStyle={{ width: '100%', padding: 0, overflow: 'visible' }}
           contentStyle={{ width: '100%', minWidth: 0, maxWidth: 'none' }}
           onFinish={async () => {
