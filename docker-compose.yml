@@ -1,0 +1,15 @@
+services:
+  xinhe-nexus-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: xinhe-nexus-web:latest
+    container_name: xinhe-nexus-web
+    ports:
+      - "${WEB_PORT:-18080}:80"
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://host.docker.internal:18081}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
