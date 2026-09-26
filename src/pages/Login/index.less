@@ -4,17 +4,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 320px;
+  box-sizing: border-box;
+  width: 100%;
   min-height: 100vh;
   padding: 32px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background:
     linear-gradient(135deg, rgba(238, 246, 255, 0.9), rgba(245, 249, 252, 0.78)),
     url('https://gw.alipayobjects.com/zos/rmsportal/FfdJeJRQWjEeGTpqgBKj.png') center / cover no-repeat;
 }
 
 .loginCard {
+  box-sizing: border-box;
   width: min(440px, 100%);
+  min-width: 0;
   padding: 44px 48px 36px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.8);
@@ -23,9 +27,26 @@
   backdrop-filter: blur(12px);
 }
 
-.loginCard :global(.ant-pro-form-login-main) {
+.loginCard :global(.ant-pro-form-login-container) {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.loginCard :global(.ant-pro-form-login-main) {
+  box-sizing: border-box;
+  width: 100% !important;
+  min-width: 0;
+  max-width: none;
+}
+
+.loginCard :global(.ant-form),
+.loginCard :global(.ant-form-item),
+.loginCard :global(.ant-input-affix-wrapper) {
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .loginCard :global(.ant-pro-form-login-header) {

@@ -11,6 +11,8 @@ export default function LoginPage() {
         <LoginForm
           title="芯河智能"
           subTitle="AI 一体化 ERP · CRM · OA 管理平台"
+          containerStyle={{ width: '100%', padding: 0, overflow: 'visible' }}
+          contentStyle={{ width: '100%', minWidth: 0, maxWidth: 'none' }}
           onFinish={async () => {
             message.success('基础框架演示登录成功');
             history.push('/dashboard');
