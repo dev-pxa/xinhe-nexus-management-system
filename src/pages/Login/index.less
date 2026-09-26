@@ -1,0 +1,48 @@
+.loginPage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 320px;
+  min-height: 100vh;
+  padding: 32px;
+  overflow: auto;
+  background:
+    linear-gradient(135deg, rgba(238, 246, 255, 0.9), rgba(245, 249, 252, 0.78)),
+    url('https://gw.alipayobjects.com/zos/rmsportal/FfdJeJRQWjEeGTpqgBKj.png') center / cover no-repeat;
+}
+
+.loginCard {
+  width: min(440px, 100%);
+  padding: 44px 48px 36px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  box-shadow: 0 18px 55px rgba(31, 69, 110, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.loginCard :global(.ant-pro-form-login-main) {
+  width: 100%;
+  min-width: 0;
+}
+
+.loginCard :global(.ant-pro-form-login-header) {
+  justify-content: center;
+}
+
+.loginCard :global(.ant-pro-form-login-desc) {
+  margin-block-end: 32px;
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .loginPage {
+    padding: 20px;
+  }
+
+  .loginCard {
+    padding: 36px 24px 28px;
+  }
+}
