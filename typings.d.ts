@@ -5,6 +5,7 @@ declare namespace API {
     username: string;
     name: string;
     roles: string[];
+    permissions: string[];
   };
 
   type ApiResponse<T> = {
@@ -15,3 +16,7 @@ declare namespace API {
   };
 }
 
+declare module '*.less' {
+  const styles: Record<string, string>;
+  export default styles;
+}
