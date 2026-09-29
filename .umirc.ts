@@ -102,11 +102,17 @@ export default defineConfig({
       routes: [
         { path: '/system', redirect: '/system/organization' },
         {
-          name: '组织与账号',
-          path: '/system/organization',
-          component: './Module',
+          name: '公司管理',
+          path: '/system/companies',
+          component: './Company',
+          access: 'isPlatformAdmin',
         },
-        { name: '角色权限', path: '/system/roles', component: './Module' },
+        {
+          name: '组织与岗位',
+          path: '/system/organization',
+          component: './Organization',
+        },
+        { name: '用户管理', path: '/system/users', component: './User' },
         {
           name: '审批流配置',
           path: '/system/workflows',

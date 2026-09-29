@@ -56,18 +56,6 @@ function handleUnauthorized() {
 
 export const request: RequestConfig = {
   timeout: 30000,
-  requestInterceptors: [
-    (config: any) => {
-      const currentUser = getAuthenticatedUser();
-      if (currentUser) {
-        config.headers = {
-          ...config.headers,
-          'X-Tenant-Id': String(currentUser.tenantId),
-        };
-      }
-      return config;
-    },
-  ],
   responseInterceptors: [
     (response) => {
       const data = response.data as API.ApiResponse<unknown> | undefined;
