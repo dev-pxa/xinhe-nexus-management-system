@@ -420,8 +420,21 @@ export default function OrganizationPage() {
               />
             </Form.Item>
           )}
-          <Form.Item name="contactPhone" label="联系电话">
-            <Input maxLength={32} />
+          <Form.Item
+            name="contactPhone"
+            label="联系电话"
+            rules={[
+              {
+                pattern: /^1[3-9]\d{9}$/,
+                message: '请输入正确的11位手机号',
+              },
+            ]}
+          >
+            <Input
+              maxLength={11}
+              inputMode="numeric"
+              placeholder="请输入11位手机号"
+            />
           </Form.Item>
           <Form.Item name="description" label="说明">
             <Input.TextArea maxLength={500} rows={3} />
