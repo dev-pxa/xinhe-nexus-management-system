@@ -42,6 +42,7 @@ export default function CompanyPage() {
           title: '公司创建成功',
           content: (
             <div>
+              <p>公司编号：{String(account.companyCode)}</p>
               <p>管理员账号：{String(account.administratorUsername)}</p>
               <p>初始密码：{String(account.initialPassword)}</p>
               <p>初始密码仅在这里展示，请妥善保存并及时修改。</p>
@@ -95,7 +96,7 @@ export default function CompanyPage() {
   return (
     <PageContainer
       title="公司管理"
-      content="维护独立公司主体及最多四级的渠道协作关系。渠道关系不会产生跨公司数据权限。"
+      content="维护独立公司主体及最多四级的渠道协作关系。公司编号由系统自动生成，渠道关系不会产生跨公司数据权限。"
     >
       <ProTable
         rowKey="id"
@@ -128,13 +129,11 @@ export default function CompanyPage() {
         destroyOnClose
       >
         <Form form={form} layout="vertical" preserve={false}>
-          <Form.Item
-            name="companyCode"
-            label="公司编号"
-            rules={[{ required: true }, { pattern: /^[A-Za-z0-9_-]{2,32}$/ }]}
-          >
-            <Input disabled={Boolean(editing)} placeholder="例如 SH001" />
-          </Form.Item>
+          {editing && (
+            <Form.Item label="公司编号">
+              <Input value={editing.companyCode} disabled />
+            </Form.Item>
+          )}
           <Form.Item
             name="companyName"
             label="公司名称"
