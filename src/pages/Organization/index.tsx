@@ -63,6 +63,44 @@ const buildTree = (items: ManagementAPI.Organization[]) => {
   return roots;
 };
 
+const validateContactPhone = (_: unknown, value?: string) => {
+  const phone = value?.trim();
+  if (!phone) return Promise.resolve();
+
+  const digitCount = (phone.match(/\d/g) || []).length;
+  let parenthesisBalance = 0;
+  let validParentheses = true;
+  for (const character of phone) {
+    if (character === '(') {
+      parenthesisBalance += 1;
+      if (parenthesisBalance !== 1) validParentheses = false;
+    } else if (character === ')') {
+      parenthesisBalance -= 1;
+      if (parenthesisBalance < 0) validParentheses = false;
+    }
+  }
+  const plusIndex = phone.indexOf('+');
+  const validPlus =
+    plusIndex < 0 || (plusIndex === 0 && phone.lastIndexOf('+') === 0);
+  const validBoundary = /^[+\d(]/.test(phone) && /[\d)]$/.test(phone);
+  const valid =
+    phone.length >= 5 &&
+    phone.length <= 32 &&
+    /^[0-9+()\- ]+$/.test(phone) &&
+    digitCount >= 5 &&
+    digitCount <= 20 &&
+    validPlus &&
+    validBoundary &&
+    validParentheses &&
+    parenthesisBalance === 0;
+
+  return valid
+    ? Promise.resolve()
+    : Promise.reject(
+        new Error('联系电话格式不正确，可填写国际号码、座机或手机号'),
+      );
+};
+
 export default function OrganizationPage() {
   const { initialState } = useModel('@@initialState');
   const platform = initialState?.currentUser?.roles.includes('PLATFORM_ADMIN');
@@ -423,17 +461,12 @@ export default function OrganizationPage() {
           <Form.Item
             name="contactPhone"
             label="联系电话"
-            rules={[
-              {
-                pattern: /^1[3-9]\d{9}$/,
-                message: '请输入正确的11位手机号',
-              },
-            ]}
+            rules={[{ validator: validateContactPhone }]}
           >
             <Input
-              maxLength={11}
-              inputMode="numeric"
-              placeholder="请输入11位手机号"
+              maxLength={32}
+              inputMode="tel"
+              placeholder="例如：+1 (415) 555-2671 或 010-88886666"
             />
           </Form.Item>
           <Form.Item name="description" label="说明">
