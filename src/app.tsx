@@ -6,7 +6,7 @@ import {
 } from '@/services/authState';
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import type { RequestConfig } from '@umijs/max';
-import { history } from '@umijs/max';
+import { history, useModel } from '@umijs/max';
 import { Avatar, message, Space, Watermark } from 'antd';
 import type { ReactNode } from 'react';
 
@@ -53,6 +53,20 @@ function handleUnauthorized() {
   redirectingToLogin = true;
   message.warning('登录已过期，请重新登录');
   history.replace('/login');
+}
+
+function CurrentUserWatermark({ children }: { children: ReactNode }) {
+  const { initialState } = useModel('@@initialState');
+  return (
+    <Watermark
+      content={`${initialState?.currentUser?.companyName || '平台管理'}-${
+        initialState?.currentUser?.name || '用户'
+      }`}
+      font={{ color: 'rgba(0,0,0,.06)' }}
+    >
+      {children}
+    </Watermark>
+  );
 }
 
 export const request: RequestConfig = {
@@ -111,26 +125,6 @@ export const layout = ({
       <PersonalProfile trigger={avatar} />
     ),
   },
-  menuFooterRender: (props: { collapsed?: boolean }) => (
-    <PersonalProfile
-      trigger={
-        <Space
-          style={{
-            width: '100%',
-            padding: props.collapsed ? '12px 8px' : '12px 16px',
-            justifyContent: props.collapsed ? 'center' : 'flex-start',
-          }}
-        >
-          <Avatar size="small">
-            {(initialState?.currentUser?.name || '用户').slice(0, 1)}
-          </Avatar>
-          {!props.collapsed && (
-            <span>{initialState?.currentUser?.name || '用户'}</span>
-          )}
-        </Space>
-      }
-    />
-  ),
   actionsRender: () => [
     <Space
       key="logout"
@@ -149,13 +143,6 @@ export const layout = ({
     </Space>,
   ],
   childrenRender: (children: ReactNode) => (
-    <Watermark
-      content={`${initialState?.currentUser?.companyName || '平台管理'}-${
-        initialState?.currentUser?.name || '用户'
-      }`}
-      font={{ color: 'rgba(0,0,0,.06)' }}
-    >
-      {children}
-    </Watermark>
+    <CurrentUserWatermark>{children}</CurrentUserWatermark>
   ),
 });
