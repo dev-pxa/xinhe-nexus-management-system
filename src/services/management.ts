@@ -128,11 +128,10 @@ export const setUserPositions = (
   id: number,
   companyId: number,
   positionIds: number[],
-  primaryPositionId?: number,
 ) =>
   request<API.ApiResponse<null>>(
     `/api/system/users/${id}/positions?companyId=${companyId}`,
-    { method: 'PUT', data: { positionIds, primaryPositionId } },
+    { method: 'PUT', data: { positionIds } },
   );
 
 export const resetUserPassword = (id: number, newPassword: string) =>

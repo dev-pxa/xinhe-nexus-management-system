@@ -136,8 +136,6 @@ export default function UserPage() {
             const current = response.data || [];
             positionForm.setFieldsValue({
               positionIds: current.map((item) => item.positionId),
-              primaryPositionId: current.find((item) => item.primaryPosition)
-                ?.positionId,
             });
             setPositionUser(row);
             setPositionOpen(true);
@@ -295,7 +293,6 @@ export default function UserPage() {
             positionUser.id,
             companyId,
             values.positionIds || [],
-            values.primaryPositionId,
           );
           message.success('用户岗位已更新');
           setPositionOpen(false);
@@ -308,15 +305,6 @@ export default function UserPage() {
               mode="multiple"
               options={positions.map((item) => ({
                 label: `${item.orgName} / ${item.positionName}`,
-                value: item.id,
-              }))}
-            />
-          </Form.Item>
-          <Form.Item name="primaryPositionId" label="主岗位">
-            <Select
-              allowClear
-              options={positions.map((item) => ({
-                label: item.positionName,
                 value: item.id,
               }))}
             />
