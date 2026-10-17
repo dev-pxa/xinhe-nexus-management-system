@@ -126,7 +126,9 @@ export const layout = ({
   ],
   childrenRender: (children: ReactNode) => (
     <Watermark
-      content={`${initialState?.currentUser?.name || '用户'} · 芯河智枢`}
+      content={`${initialState?.currentUser?.companyName || '平台管理'}-${
+        initialState?.currentUser?.name || '用户'
+      }`}
       font={{ color: 'rgba(0,0,0,.06)' }}
     >
       {children}
