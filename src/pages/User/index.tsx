@@ -8,6 +8,7 @@ import {
   setUserPositions,
   updateUser,
 } from '@/services/management';
+import { PASSWORD_REQUIREMENT, validatePassword } from '@/utils/password';
 import { KeyOutlined, PlusOutlined, TeamOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -333,7 +334,8 @@ export default function UserPage() {
           <Form.Item
             name="newPassword"
             label="新密码"
-            rules={[{ required: true }, { min: 8, max: 72 }]}
+            extra={PASSWORD_REQUIREMENT}
+            rules={[{ validator: validatePassword }]}
           >
             <Input.Password />
           </Form.Item>

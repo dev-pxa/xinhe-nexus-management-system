@@ -11,6 +11,13 @@ declare namespace API {
     authVersion: number;
   };
 
+  type PersonalProfile = {
+    username: string;
+    displayName: string;
+    phone?: string;
+    email?: string;
+  };
+
   type ApiResponse<T> = {
     code: number;
     message: string;

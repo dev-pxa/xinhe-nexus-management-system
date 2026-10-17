@@ -1,3 +1,4 @@
+import PersonalProfile from '@/components/PersonalProfile';
 import { getCurrentUser, logout } from '@/services/auth';
 import {
   getAuthenticatedUser,
@@ -106,7 +107,30 @@ export const layout = ({
   avatarProps: {
     src: <Avatar>管</Avatar>,
     title: initialState?.currentUser?.name || '用户',
+    render: (_: unknown, avatar: ReactNode) => (
+      <PersonalProfile trigger={avatar} />
+    ),
   },
+  menuFooterRender: (props: { collapsed?: boolean }) => (
+    <PersonalProfile
+      trigger={
+        <Space
+          style={{
+            width: '100%',
+            padding: props.collapsed ? '12px 8px' : '12px 16px',
+            justifyContent: props.collapsed ? 'center' : 'flex-start',
+          }}
+        >
+          <Avatar size="small">
+            {(initialState?.currentUser?.name || '用户').slice(0, 1)}
+          </Avatar>
+          {!props.collapsed && (
+            <span>{initialState?.currentUser?.name || '用户'}</span>
+          )}
+        </Space>
+      }
+    />
+  ),
   actionsRender: () => [
     <Space
       key="logout"
