@@ -13,6 +13,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
 import {
+  Alert,
   Button,
   Form,
   Input,
@@ -83,7 +84,7 @@ export default function UserPage() {
   };
 
   const columns: ProColumns<ManagementAPI.User>[] = [
-    { title: '登录账号', dataIndex: 'username', copyable: true },
+    { title: '用户名', dataIndex: 'username', copyable: true },
     { title: '用户姓名', dataIndex: 'displayName' },
     ...(platform
       ? [
@@ -161,7 +162,7 @@ export default function UserPage() {
   return (
     <PageContainer
       title="用户管理"
-      content="管理各公司登录账号、管理员身份和岗位。密码仅保存 BCrypt 哈希，重置后旧会话立即失效。"
+      content="管理各公司用户、管理员身份和岗位。密码仅保存 BCrypt 哈希，重置后旧会话立即失效。"
       extra={
         platform ? (
           <Select
@@ -210,22 +211,22 @@ export default function UserPage() {
         destroyOnClose
       >
         <Form form={form} layout="vertical" preserve={false}>
+          {!editing && (
+            <Alert
+              type="info"
+              showIcon
+              message="初始密码：xinhe123."
+              description="系统将自动设置初始密码，无需手工填写。请提醒用户首次登录后及时修改密码。"
+              style={{ marginBottom: 16 }}
+            />
+          )}
           <Form.Item
             name="username"
-            label="登录账号"
+            label="用户名"
             rules={[{ required: true }]}
           >
             <Input disabled={Boolean(editing)} maxLength={64} />
           </Form.Item>
-          {!editing && (
-            <Form.Item
-              name="password"
-              label="初始密码"
-              rules={[{ required: true }, { min: 8, max: 72 }]}
-            >
-              <Input.Password />
-            </Form.Item>
-          )}
           <Form.Item
             name="displayName"
             label="用户姓名"
@@ -234,7 +235,13 @@ export default function UserPage() {
             <Input maxLength={64} />
           </Form.Item>
           <Space size={16} style={{ display: 'flex' }}>
-            <Form.Item name="phone" label="手机号">
+            <Form.Item
+              name="phone"
+              label="手机号"
+              rules={
+                editing ? [] : [{ required: true, message: '请输入手机号' }]
+              }
+            >
               <Input maxLength={32} />
             </Form.Item>
             <Form.Item name="email" label="邮箱" rules={[{ type: 'email' }]}>
