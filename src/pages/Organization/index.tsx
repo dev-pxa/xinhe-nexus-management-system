@@ -437,6 +437,24 @@ export default function OrganizationPage() {
           >
             <Input maxLength={128} />
           </Form.Item>
+          {editingOrg && (
+            <Form.Item name="managerPositionId" label="负责人">
+              <Select
+                allowClear
+                placeholder="请选择当前组织下的负责人岗位"
+                options={positions
+                  .filter(
+                    (item) =>
+                      item.status === 'ENABLED' ||
+                      item.id === editingOrg.managerPositionId,
+                  )
+                  .map((item) => ({
+                    label: `${item.positionName}（${item.positionCode}）`,
+                    value: item.id,
+                  }))}
+              />
+            </Form.Item>
+          )}
           {editingOrg && !editingOrg.parentId ? (
             <Form.Item label="上级组织">
               <Input value="公司根组织（不可移动）" disabled />

@@ -50,6 +50,9 @@ declare namespace ManagementAPI {
     orgLevel: number;
     managerUserId?: number;
     managerName?: string;
+    managerPositionId?: number;
+    managerPositionCode?: string;
+    managerPositionName?: string;
     contactPhone?: string;
     description?: string;
     status: string;
