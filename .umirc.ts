@@ -71,7 +71,7 @@ export default defineConfig({
         { path: '/oa', redirect: '/oa/attendance' },
         { name: '打卡记录', path: '/oa/attendance', exact: true, component: './Attendance' },
         { name: '全部打卡记录', path: '/oa/all-attendance', component: './AllAttendance', access: 'isAdmin' },
-        { name: '差旅与报销', path: '/oa/expense', component: './Module' },
+        { name: '我的报销', path: '/oa/expense', component: './Module' },
         { name: '审批中心', path: '/oa/approval', component: './Module' },
         { name: '固定资产', path: '/oa/assets', component: './Module' },
       ],
