@@ -197,6 +197,9 @@ export const saveExpense = (id: number, items: ManagementAPI.ExpenseItem[]) =>
 export const submitExpense = (id: number) =>
   request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/submit`, { method: 'POST' });
 
+export const deleteExpense = (id: number) =>
+  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}`, { method: 'DELETE' });
+
 export const reviewExpense = (id: number, action: 'APPROVE' | 'REJECT', opinion?: string) =>
   request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/review`, {
     method: 'POST', data: { action, opinion },
