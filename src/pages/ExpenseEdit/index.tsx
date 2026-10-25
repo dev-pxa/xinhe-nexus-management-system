@@ -38,6 +38,26 @@ export default function ExpenseEditPage() {
   const updateItem = (index: number, patch: Partial<ManagementAPI.ExpenseItem>) => setItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
   const addItem = (category: ManagementAPI.ExpenseItem['expenseCategory']) => setItems((current) => [...current, { expenseCategory: category, amount: 0 }]);
   const save = async () => { if (!claim) return; setLoading(true); try { const response = await saveExpense(claim.id, items); if (response.code === 0 && response.data) { setClaim(response.data); setItems(response.data.items || []); message.success('已暂存'); } else message.error(response.message); } finally { setLoading(false); } };
+  const ensureItemId = async (index: number) => {
+    if (!claim) throw new Error('报销单尚未创建');
+    const existingId = items[index]?.id;
+    if (existingId) return existingId;
+    const response = await saveExpense(claim.id, items);
+    if (response.code !== 0 || !response.data) throw new Error(response.message || '费用条目暂存失败');
+    const savedItems = response.data.items || [];
+    setClaim(response.data);
+    setItems(savedItems);
+    const savedId = savedItems[index]?.id;
+    if (!savedId) throw new Error('费用条目暂存成功，但未返回条目编号');
+    return savedId;
+  };
+  const uploadAttachment = async (index: number, kind: 'INVOICE' | 'OTHER', file: File) => {
+    if (!claim) throw new Error('报销单尚未创建');
+    const itemId = await ensureItemId(index);
+    const response = await uploadExpenseAttachment(claim.id, itemId, kind, file);
+    if (response.code !== 0) throw new Error(response.message || '附件上传失败');
+    await load();
+  };
   const submit = async () => { await save(); if (!claim) return; const response = await submitExpense(claim.id); if (response.code === 0) { message.success('提交成功'); await load(); } else message.error(response.message); };
   const review = async (action: 'APPROVE' | 'REJECT') => { let opinion = ''; if (action === 'REJECT') { opinion = await new Promise<string>((resolve) => { let value = ''; Modal.confirm({ title: '填写驳回原因', content: <Input.TextArea onChange={(event) => { value = event.target.value; }} />, onOk: () => resolve(value), onCancel: () => resolve('') }); }); if (!opinion) return; } const response = await reviewExpense(Number(id), action, opinion); if (response.code === 0) { message.success(action === 'APPROVE' ? '审核通过' : '已驳回'); await load(); } else message.error(response.message); };
   const preview = (attachment: ManagementAPI.ExpenseAttachment) => window.open(expenseAttachmentUrl(attachment.id), '_blank', 'noopener,noreferrer');
@@ -55,9 +75,10 @@ export default function ExpenseEditPage() {
               <InputNumber disabled={!editable} min={0} precision={2} placeholder="金额" value={item.amount} onChange={(value) => updateItem(index, { amount: Number(value || 0) })} />
               {editable && <Button danger icon={<DeleteOutlined />} onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))} />}
             </Space>
-            {claim && item.id && <Space style={{ marginTop: 12 }} wrap>
-              <Upload showUploadList={false} accept=".pdf" customRequest={async ({ file, onSuccess, onError }) => { try { await uploadExpenseAttachment(claim.id, item.id!, 'INVOICE', file as File); message.success('发票上传成功'); await load(); onSuccess?.({}); } catch (error) { onError?.(error as Error); } }} beforeUpload={(file) => file.type === 'application/pdf' || (message.error('发票只允许PDF'), false)}><Button disabled={!editable}>上传发票PDF</Button></Upload>
-              <Upload showUploadList={false} accept=".pdf,.jpg,.jpeg,.png" customRequest={async ({ file, onSuccess, onError }) => { try { await uploadExpenseAttachment(claim.id, item.id!, 'OTHER', file as File); message.success('附件上传成功'); await load(); onSuccess?.({}); } catch (error) { onError?.(error as Error); } }}><Button disabled={!editable}>上传其他附件</Button></Upload>
+            {claim && <Space style={{ marginTop: 12 }} wrap>
+              <Upload showUploadList={false} accept=".pdf" disabled={!editable} customRequest={async ({ file, onSuccess, onError }) => { try { await uploadAttachment(index, 'INVOICE', file as File); message.success('发票上传成功'); onSuccess?.({}); } catch (error) { onError?.(error as Error); message.error((error as Error).message); } }} beforeUpload={(file) => file.type === 'application/pdf' || (message.error('发票只允许PDF'), false)}><Button disabled={!editable}>上传发票PDF</Button></Upload>
+              <Upload showUploadList={false} accept=".pdf,.jpg,.jpeg,.png" disabled={!editable} customRequest={async ({ file, onSuccess, onError }) => { try { await uploadAttachment(index, 'OTHER', file as File); message.success('附件上传成功'); onSuccess?.({}); } catch (error) { onError?.(error as Error); message.error((error as Error).message); } }}><Button disabled={!editable}>上传其他附件</Button></Upload>
+              {!item.id && editable && <span style={{ color: '#8c8c8c' }}>上传时会自动暂存该费用条目</span>}
               {(claim.attachments || []).filter((attachment) => attachment.itemId === item.id).map((attachment) => <Button key={attachment.id} type="link" onClick={() => preview(attachment)}>{attachment.attachmentKind === 'INVOICE' ? '查看发票' : '查看附件'}：{attachment.fileName}</Button>)}
             </Space>}
           </Card.Grid>)}
