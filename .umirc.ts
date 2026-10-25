@@ -68,9 +68,8 @@ export default defineConfig({
       icon: 'SolutionOutlined',
       path: '/oa',
       routes: [
-        { path: '/oa', redirect: '/oa/employees' },
-        { name: '人员档案', path: '/oa/employees', component: './Module' },
-        { name: '考勤假勤', path: '/oa/attendance', component: './Module' },
+        { path: '/oa', redirect: '/oa/attendance' },
+        { name: '打卡记录', path: '/oa/attendance', component: './Attendance' },
         { name: '差旅与报销', path: '/oa/expense', component: './Module' },
         { name: '审批中心', path: '/oa/approval', component: './Module' },
         { name: '固定资产', path: '/oa/assets', component: './Module' },

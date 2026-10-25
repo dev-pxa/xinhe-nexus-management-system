@@ -139,3 +139,32 @@ export const resetUserPassword = (id: number, newPassword: string) =>
     method: 'POST',
     data: { newPassword },
   });
+
+export const punchAttendance = (remark?: string) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceSummary>>('/api/oa/attendance/punch', {
+    method: 'POST',
+    data: remark ? { remark } : {},
+  });
+
+export const listMyAttendance = (from: string, to: string) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceSummary[]>>(
+    `/api/oa/attendance/my?from=${from}&to=${to}`,
+  );
+
+export const listAllAttendance = (params: {
+  from: string;
+  to: string;
+  companyId?: number;
+  userId?: number;
+  orgUnitId?: number;
+  keyword?: string;
+}) => {
+  const query = new URLSearchParams({ from: params.from, to: params.to });
+  if (params.companyId) query.set('companyId', String(params.companyId));
+  if (params.userId) query.set('userId', String(params.userId));
+  if (params.orgUnitId) query.set('orgUnitId', String(params.orgUnitId));
+  if (params.keyword) query.set('keyword', params.keyword);
+  return request<API.ApiResponse<ManagementAPI.AttendanceSummary[]>>(
+    `/api/oa/attendance/records?${query.toString()}`,
+  );
+};

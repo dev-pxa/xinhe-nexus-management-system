@@ -99,6 +99,20 @@ declare namespace ManagementAPI {
     moduleCode: string;
     status: string;
   };
+
+  type AttendanceSummary = {
+    id?: number;
+    companyId?: number;
+    userId?: number;
+    username?: string;
+    displayName?: string;
+    orgName?: string;
+    punchDate: string;
+    firstPunchTime?: string;
+    lastPunchTime?: string;
+    punchCount: number;
+    status: 'NO_RECORD' | 'SINGLE' | 'NORMAL';
+  };
 }
 
 declare module '*.less' {
