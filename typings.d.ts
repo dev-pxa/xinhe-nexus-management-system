@@ -138,6 +138,7 @@ declare namespace ManagementAPI {
     orgName?: string;
     reviewerUserId?: number;
     reviewerName?: string;
+    preview?: boolean;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
     opinion?: string;
     actedAt?: string;
