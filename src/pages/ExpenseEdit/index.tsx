@@ -5,6 +5,7 @@ import { history, useModel, useParams } from '@umijs/max';
 import { Button, Card, DatePicker, Divider, Form, Image, Input, InputNumber, List, message, Modal, Space, Tag, Timeline, Upload } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
+import styles from './index.less';
 
 const categories: { key: ManagementAPI.ExpenseItem['expenseCategory']; label: string }[] = [
   { key: 'ACCOMMODATION', label: '住宿费用' }, { key: 'MEAL', label: '餐饮费用' },
@@ -45,9 +46,9 @@ export default function ExpenseEditPage() {
     <PageContainer title={claim ? `报销单 ${claim.claimNo}` : '新增报销'} extra={<Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/oa/expense')}>返回列表</Button>}>
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
         {claim && <Card><Space><span>状态：</span><Tag color={statusMap[claim.status][1]}>{statusMap[claim.status][0]}</Tag><span>总金额：¥{total.toFixed(2)}</span></Space></Card>}
-        {grouped.map((group) => <Card key={group.key} title={group.label} extra={editable && <Button type="link" icon={<PlusOutlined />} onClick={() => addItem(group.key)}>新增条目</Button>}>
-          {group.rows.length === 0 && <span style={{ color: '#999' }}>暂无条目</span>}
-          {group.rows.map(({ item, index }) => <Card.Grid key={index} style={{ width: '100%' }}>
+        {grouped.map((group) => <Card key={group.key} className={styles.expenseSection} title={<span className={styles.sectionTitle}>{group.label}</span>} extra={editable && <Button type="primary" ghost size="small" icon={<PlusOutlined />} onClick={() => addItem(group.key)}>新增条目</Button>}>
+          {group.rows.length === 0 && <div className={styles.emptySection}>暂无条目，点击右上角新增费用</div>}
+          {group.rows.map(({ item, index }) => <Card.Grid key={index} className={styles.expenseItem}>
             <Space wrap>
               <DatePicker disabled={!editable} value={item.expenseDate ? dayjs(item.expenseDate) : undefined} onChange={(value) => updateItem(index, { expenseDate: value?.format('YYYY-MM-DD') })} />
               <Input disabled={!editable} placeholder="地点" value={item.expenseLocation} onChange={(event) => updateItem(index, { expenseLocation: event.target.value })} style={{ width: 180 }} />
