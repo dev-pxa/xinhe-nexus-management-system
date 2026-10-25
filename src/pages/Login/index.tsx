@@ -37,7 +37,8 @@ export default function LoginPage() {
               message.success('登录成功');
               history.replace('/dashboard');
               return true;
-            } catch {
+            } catch (error: any) {
+              message.error(error?.response?.data?.message || '登录失败，请稍后重试');
               return false;
             }
           }}
