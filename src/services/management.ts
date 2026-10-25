@@ -168,3 +168,14 @@ export const listAllAttendance = (params: {
     `/api/oa/attendance/records?${query.toString()}`,
   );
 };
+
+export const adminPunchAttendance = (data: {
+  companyId?: number;
+  userId: number;
+  punchTime: string;
+  remark?: string;
+}) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceSummary>>('/api/oa/attendance/records/punch', {
+    method: 'POST',
+    data,
+  });
