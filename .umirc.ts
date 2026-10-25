@@ -69,7 +69,7 @@ export default defineConfig({
       path: '/oa',
       routes: [
         { path: '/oa', redirect: '/oa/attendance' },
-        { name: '打卡记录', path: '/oa/attendance', component: './Attendance' },
+        { name: '打卡记录', path: '/oa/attendance', exact: true, component: './Attendance' },
         { name: '全部打卡记录', path: '/oa/attendance/all', component: './AllAttendance', access: 'isAdmin' },
         { name: '差旅与报销', path: '/oa/expense', component: './Module' },
         { name: '审批中心', path: '/oa/approval', component: './Module' },
