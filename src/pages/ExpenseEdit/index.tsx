@@ -1,5 +1,5 @@
 import { createExpense, expenseAttachmentUrl, getExpense, reviewExpense, saveExpense, submitExpense, uploadExpenseAttachment } from '@/services/management';
-import { ArrowLeftOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, InboxOutlined, PlusOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useModel, useParams } from '@umijs/max';
 import { Button, Card, DatePicker, Divider, Form, Image, Input, InputNumber, List, message, Modal, Space, Tag, Timeline, Upload } from 'antd';
@@ -69,15 +69,18 @@ export default function ExpenseEditPage() {
         {grouped.map((group) => <Card key={group.key} className={styles.expenseSection} title={<span className={styles.sectionTitle}>{group.label}</span>} extra={editable && <Button type="primary" ghost size="small" icon={<PlusOutlined />} onClick={() => addItem(group.key)}>新增条目</Button>}>
           {group.rows.length === 0 && <div className={styles.emptySection}>暂无条目，点击右上角新增费用</div>}
           {group.rows.map(({ item, index }) => <Card.Grid key={index} className={styles.expenseItem}>
-            <Space wrap>
-              <DatePicker disabled={!editable} value={item.expenseDate ? dayjs(item.expenseDate) : undefined} onChange={(value) => updateItem(index, { expenseDate: value?.format('YYYY-MM-DD') })} />
-              <Input disabled={!editable} placeholder="地点" value={item.expenseLocation} onChange={(event) => updateItem(index, { expenseLocation: event.target.value })} style={{ width: 180 }} />
-              <InputNumber disabled={!editable} min={0} precision={2} placeholder="金额" value={item.amount} onChange={(value) => updateItem(index, { amount: Number(value || 0) })} />
-              {editable && <Button danger icon={<DeleteOutlined />} onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))} />}
-            </Space>
+            <div className={styles.fieldRow}><span className={styles.fieldLabel}>费用日期</span><DatePicker disabled={!editable} value={item.expenseDate ? dayjs(item.expenseDate) : undefined} onChange={(value) => updateItem(index, { expenseDate: value?.format('YYYY-MM-DD') })} /></div>
+            <div className={styles.fieldRow}><span className={styles.fieldLabel}>费用地点</span><Input disabled={!editable} placeholder="请输入费用发生地点" value={item.expenseLocation} onChange={(event) => updateItem(index, { expenseLocation: event.target.value })} /></div>
+            <div className={styles.fieldRow}><span className={styles.fieldLabel}>费用金额</span><InputNumber className={styles.amountInput} disabled={!editable} min={0} precision={2} placeholder="请输入金额" value={item.amount} onChange={(value) => updateItem(index, { amount: Number(value || 0) })} /><span className={styles.currencyLabel}>元</span>{editable && <Button danger icon={<DeleteOutlined />} onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}>删除条目</Button>}</div>
             {claim && <Space style={{ marginTop: 12 }} wrap>
-              <Upload showUploadList={false} accept=".pdf" disabled={!editable} customRequest={async ({ file, onSuccess, onError }) => { try { await uploadAttachment(index, 'INVOICE', file as File); message.success('发票上传成功'); onSuccess?.({}); } catch (error) { onError?.(error as Error); message.error((error as Error).message); } }} beforeUpload={(file) => file.type === 'application/pdf' || (message.error('发票只允许PDF'), false)}><Button disabled={!editable}>上传发票PDF</Button></Upload>
-              <Upload showUploadList={false} accept=".pdf,.jpg,.jpeg,.png" disabled={!editable} customRequest={async ({ file, onSuccess, onError }) => { try { await uploadAttachment(index, 'OTHER', file as File); message.success('附件上传成功'); onSuccess?.({}); } catch (error) { onError?.(error as Error); message.error((error as Error).message); } }}><Button disabled={!editable}>上传其他附件</Button></Upload>
+              <div className={styles.uploadRow}>
+                <Upload.Dragger className={styles.uploadBox} showUploadList={false} accept=".pdf" disabled={!editable} customRequest={async ({ file, onSuccess, onError }) => { try { await uploadAttachment(index, 'INVOICE', file as File); message.success('发票上传成功'); onSuccess?.({}); } catch (error) { onError?.(error as Error); message.error((error as Error).message); } }} beforeUpload={(file) => file.type === 'application/pdf' || (message.error('发票只允许PDF'), false)}>
+                  <p className="ant-upload-drag-icon"><InboxOutlined /></p><Button type="primary" ghost disabled={!editable}>上传发票PDF</Button><p className="ant-upload-hint">支持拖拽或点击，限 PDF</p>
+                </Upload.Dragger>
+                <Upload.Dragger className={styles.uploadBox} showUploadList={false} accept=".pdf,.jpg,.jpeg,.png" disabled={!editable} customRequest={async ({ file, onSuccess, onError }) => { try { await uploadAttachment(index, 'OTHER', file as File); message.success('附件上传成功'); onSuccess?.({}); } catch (error) { onError?.(error as Error); message.error((error as Error).message); } }}>
+                  <p className="ant-upload-drag-icon"><InboxOutlined /></p><Button type="primary" ghost disabled={!editable}>上传其他附件</Button><p className="ant-upload-hint">支持拖拽或点击，限 PDF/图片</p>
+                </Upload.Dragger>
+              </div>
               {!item.id && editable && <span style={{ color: '#8c8c8c' }}>上传时会自动暂存该费用条目</span>}
               {(claim.attachments || []).filter((attachment) => attachment.itemId === item.id).map((attachment) => <Button key={attachment.id} type="link" onClick={() => preview(attachment)}>{attachment.attachmentKind === 'INVOICE' ? '查看发票' : '查看附件'}：{attachment.fileName}</Button>)}
             </Space>}

@@ -47,3 +47,68 @@
     box-shadow: none;
   }
 }
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  margin-bottom: 10px;
+}
+
+.fieldLabel {
+  flex: 0 0 72px;
+  color: #52677d;
+  font-weight: 500;
+}
+
+.fieldRow :global(.ant-picker),
+.fieldRow :global(.ant-input) {
+  width: min(100%, 420px);
+}
+
+.amountInput {
+  width: 180px;
+}
+
+.currencyLabel {
+  margin-left: 8px;
+  color: #52677d;
+}
+
+.uploadRow {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.uploadBox {
+  flex: 1;
+  min-width: 220px;
+
+  :global(.ant-upload) {
+    padding: 10px 8px !important;
+  }
+
+  :global(.ant-upload-drag-icon) {
+    margin-bottom: 4px !important;
+    color: #1677ff;
+    font-size: 22px;
+  }
+
+  :global(.ant-upload-hint) {
+    margin: 4px 0 0;
+    color: #8c9aaa;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 720px) {
+  .uploadRow {
+    flex-direction: column;
+  }
+
+  .uploadBox {
+    width: 100%;
+  }
+}
