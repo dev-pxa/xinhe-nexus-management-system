@@ -1,5 +1,5 @@
 import { createExpense, expenseAttachmentUrl, getExpense, reviewExpense, saveExpense, submitExpense, uploadExpenseAttachment } from '@/services/management';
-import { ArrowLeftOutlined, DeleteOutlined, InboxOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, InfoCircleOutlined, InboxOutlined, PlusOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useModel, useParams } from '@umijs/max';
 import { Button, Card, DatePicker, Divider, Form, Image, Input, InputNumber, List, message, Modal, Space, Tag, Timeline, Upload } from 'antd';
@@ -61,9 +61,22 @@ export default function ExpenseEditPage() {
   const submit = async () => { await save(); if (!claim) return; const response = await submitExpense(claim.id); if (response.code === 0) { message.success('提交成功'); await load(); } else message.error(response.message); };
   const review = async (action: 'APPROVE' | 'REJECT') => { let opinion = ''; if (action === 'REJECT') { opinion = await new Promise<string>((resolve) => { let value = ''; Modal.confirm({ title: '填写驳回原因', content: <Input.TextArea onChange={(event) => { value = event.target.value; }} />, onOk: () => resolve(value), onCancel: () => resolve('') }); }); if (!opinion) return; } const response = await reviewExpense(Number(id), action, opinion); if (response.code === 0) { message.success(action === 'APPROVE' ? '审核通过' : '已驳回'); await load(); } else message.error(response.message); };
   const preview = (attachment: ManagementAPI.ExpenseAttachment) => window.open(expenseAttachmentUrl(attachment.id), '_blank', 'noopener,noreferrer');
+  const showInstructions = () => Modal.info({
+    title: '报销使用说明',
+    width: 680,
+    content: <div>
+      <p><strong>填写说明</strong></p>
+      <p>请按费用类型新增条目，填写费用日期、费用地点和费用金额。每条费用明细都可以上传对应发票及其他附件。</p>
+      <p>发票仅支持 PDF；其他附件支持 PDF、JPG、JPEG、PNG。附件支持点击选择或拖拽上传。</p>
+      <p>“暂存”只保存当前编辑内容，不会进入审核；确认无误后点击“提交”发起审核。</p>
+      <p><strong>审核流程</strong></p>
+      <p>提交后，报销单从提交人所在部门负责人开始，依次流转至上级部门负责人，直到总经理审核。页面中的审核流程会显示后续审核人以及当前停留的审核节点。</p>
+      <p>所有审核人通过后，报销单变为“审核通过”；任一审核人驳回后变为“已驳回”，修改后可以重新提交。</p>
+    </div>,
+  });
 
   return (
-    <PageContainer title={claim ? `报销单 ${claim.claimNo}` : '新增报销'} extra={<Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/oa/expense')}>返回列表</Button>}>
+    <PageContainer title={claim ? `报销单 ${claim.claimNo}` : '新增报销'} extra={<Space><Button icon={<InfoCircleOutlined />} onClick={showInstructions}>使用说明</Button><Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/oa/expense')}>返回列表</Button></Space>}>
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
         {claim && <Card><Space><span>状态：</span><Tag color={statusMap[claim.status][1]}>{statusMap[claim.status][0]}</Tag><span>总金额：¥{total.toFixed(2)}</span></Space></Card>}
         {grouped.map((group) => <Card key={group.key} className={styles.expenseSection} title={<span className={styles.sectionTitle}>{group.label}</span>} extra={editable && <Button type="primary" ghost size="small" icon={<PlusOutlined />} onClick={() => addItem(group.key)}>新增条目</Button>}>
