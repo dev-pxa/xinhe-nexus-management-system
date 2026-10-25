@@ -1,0 +1,71 @@
+import { createExpense, expenseAttachmentUrl, getExpense, reviewExpense, saveExpense, submitExpense, uploadExpenseAttachment } from '@/services/management';
+import { ArrowLeftOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-components';
+import { history, useModel, useParams } from '@umijs/max';
+import { Button, Card, DatePicker, Divider, Form, Image, Input, InputNumber, List, message, Modal, Space, Tag, Timeline, Upload } from 'antd';
+import dayjs, { Dayjs } from 'dayjs';
+import { useEffect, useMemo, useState } from 'react';
+
+const categories: { key: ManagementAPI.ExpenseItem['expenseCategory']; label: string }[] = [
+  { key: 'ACCOMMODATION', label: '住宿费用' }, { key: 'MEAL', label: '餐饮费用' },
+  { key: 'TRANSPORT', label: '交通费用' }, { key: 'OTHER', label: '其他费用' },
+];
+const statusMap: Record<ManagementAPI.ExpenseClaim['status'], [string, string]> = {
+  DRAFT: ['草稿', 'default'], PENDING: ['待审核', 'processing'], REVIEWING: ['审核中', 'warning'], APPROVED: ['审核通过', 'success'], REJECTED: ['已驳回', 'error'],
+};
+
+export default function ExpenseEditPage() {
+  const { id } = useParams<{ id: string }>();
+  const { initialState } = useModel('@@initialState');
+  const [claim, setClaim] = useState<ManagementAPI.ExpenseClaim>();
+  const [items, setItems] = useState<ManagementAPI.ExpenseItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const editable = claim?.status === 'DRAFT' || claim?.status === 'REJECTED';
+  const canReview = Boolean(claim?.currentReviewerId && claim.currentReviewerId === initialState?.currentUser?.id);
+  const load = async () => { if (!id || id === 'new') return; const response = await getExpense(Number(id)); if (response.code === 0 && response.data) { setClaim(response.data); setItems(response.data.items || []); } else message.error(response.message); };
+  useEffect(() => {
+    if (id === 'new') {
+      void createExpense().then((response) => {
+        if (response.code === 0 && response.data) { setClaim(response.data); setItems(response.data.items || []); history.replace(`/oa/expense/${response.data.id}`); }
+        else message.error(response.message);
+      });
+    } else void load();
+  }, [id]);
+  const grouped = useMemo(() => categories.map((category) => ({ ...category, rows: items.map((item, index) => ({ item, index })).filter(({ item }) => item.expenseCategory === category.key) })), [items]);
+  const total = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const updateItem = (index: number, patch: Partial<ManagementAPI.ExpenseItem>) => setItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  const addItem = (category: ManagementAPI.ExpenseItem['expenseCategory']) => setItems((current) => [...current, { expenseCategory: category, amount: 0 }]);
+  const save = async () => { if (!claim) return; setLoading(true); try { const response = await saveExpense(claim.id, items); if (response.code === 0 && response.data) { setClaim(response.data); setItems(response.data.items || []); message.success('已暂存'); } else message.error(response.message); } finally { setLoading(false); } };
+  const submit = async () => { await save(); if (!claim) return; const response = await submitExpense(claim.id); if (response.code === 0) { message.success('提交成功'); await load(); } else message.error(response.message); };
+  const review = async (action: 'APPROVE' | 'REJECT') => { let opinion = ''; if (action === 'REJECT') { opinion = await new Promise<string>((resolve) => { let value = ''; Modal.confirm({ title: '填写驳回原因', content: <Input.TextArea onChange={(event) => { value = event.target.value; }} />, onOk: () => resolve(value), onCancel: () => resolve('') }); }); if (!opinion) return; } const response = await reviewExpense(Number(id), action, opinion); if (response.code === 0) { message.success(action === 'APPROVE' ? '审核通过' : '已驳回'); await load(); } else message.error(response.message); };
+  const preview = (attachment: ManagementAPI.ExpenseAttachment) => window.open(expenseAttachmentUrl(attachment.id), '_blank', 'noopener,noreferrer');
+
+  return (
+    <PageContainer title={claim ? `报销单 ${claim.claimNo}` : '新增报销'} extra={<Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/oa/expense')}>返回列表</Button>}>
+      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+        {claim && <Card><Space><span>状态：</span><Tag color={statusMap[claim.status][1]}>{statusMap[claim.status][0]}</Tag><span>总金额：¥{total.toFixed(2)}</span></Space></Card>}
+        {grouped.map((group) => <Card key={group.key} title={group.label} extra={editable && <Button type="link" icon={<PlusOutlined />} onClick={() => addItem(group.key)}>新增条目</Button>}>
+          {group.rows.length === 0 && <span style={{ color: '#999' }}>暂无条目</span>}
+          {group.rows.map(({ item, index }) => <Card.Grid key={index} style={{ width: '100%' }}>
+            <Space wrap>
+              <DatePicker disabled={!editable} value={item.expenseDate ? dayjs(item.expenseDate) : undefined} onChange={(value) => updateItem(index, { expenseDate: value?.format('YYYY-MM-DD') })} />
+              <Input disabled={!editable} placeholder="地点" value={item.expenseLocation} onChange={(event) => updateItem(index, { expenseLocation: event.target.value })} style={{ width: 180 }} />
+              <InputNumber disabled={!editable} min={0} precision={2} placeholder="金额" value={item.amount} onChange={(value) => updateItem(index, { amount: Number(value || 0) })} />
+              {editable && <Button danger icon={<DeleteOutlined />} onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))} />}
+            </Space>
+            {claim && item.id && <Space style={{ marginTop: 12 }} wrap>
+              <Upload showUploadList={false} accept=".pdf" customRequest={async ({ file, onSuccess, onError }) => { try { await uploadExpenseAttachment(claim.id, item.id!, 'INVOICE', file as File); message.success('发票上传成功'); await load(); onSuccess?.({}); } catch (error) { onError?.(error as Error); } }} beforeUpload={(file) => file.type === 'application/pdf' || (message.error('发票只允许PDF'), false)}><Button disabled={!editable}>上传发票PDF</Button></Upload>
+              <Upload showUploadList={false} accept=".pdf,.jpg,.jpeg,.png" customRequest={async ({ file, onSuccess, onError }) => { try { await uploadExpenseAttachment(claim.id, item.id!, 'OTHER', file as File); message.success('附件上传成功'); await load(); onSuccess?.({}); } catch (error) { onError?.(error as Error); } }}><Button disabled={!editable}>上传其他附件</Button></Upload>
+              {(claim.attachments || []).filter((attachment) => attachment.itemId === item.id).map((attachment) => <Button key={attachment.id} type="link" onClick={() => preview(attachment)}>{attachment.attachmentKind === 'INVOICE' ? '查看发票' : '查看附件'}：{attachment.fileName}</Button>)}
+            </Space>}
+          </Card.Grid>)}
+        </Card>)}
+        {claim && claim.approvalNodes && claim.approvalNodes.length > 0 && <Card title="审核流程"><Timeline items={claim.approvalNodes.map((node) => ({ color: node.status === 'APPROVED' ? 'green' : node.status === 'REJECTED' ? 'red' : node.reviewerUserId === claim.currentReviewerId ? 'blue' : 'gray', children: <div><div>{node.sequenceNo}. {node.orgName || '上级组织'} - {node.reviewerName || '待配置负责人'}</div><div style={{ color: '#999' }}>{node.status === 'PENDING' && node.reviewerUserId === claim.currentReviewerId ? '当前审核人' : node.status === 'PENDING' ? '待审核' : node.status === 'APPROVED' ? '已通过' : '已驳回'}{node.opinion ? `：${node.opinion}` : ''}</div></div> }))} /></Card>}
+        <Divider />
+        {editable && <Space><Button loading={loading} onClick={() => void save()}>暂存</Button><Button type="primary" loading={loading} onClick={() => void submit()}>提交</Button></Space>}
+        {canReview && <Space><Button type="primary" onClick={() => void review('APPROVE')}>审核通过</Button><Button danger onClick={() => void review('REJECT')}>驳回</Button></Space>}
+      </Space>
+    </PageContainer>
+  );
+}

@@ -179,3 +179,33 @@ export const adminPunchAttendance = (data: {
     method: 'POST',
     data,
   });
+
+export const listMyExpenses = () =>
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim[]>>('/api/oa/expenses/mine');
+
+export const createExpense = () =>
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>('/api/oa/expenses', { method: 'POST' });
+
+export const getExpense = (id: number) =>
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>(`/api/oa/expenses/${id}`);
+
+export const saveExpense = (id: number, items: ManagementAPI.ExpenseItem[]) =>
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>(`/api/oa/expenses/${id}`, {
+    method: 'PUT', data: { items },
+  });
+
+export const submitExpense = (id: number) =>
+  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/submit`, { method: 'POST' });
+
+export const reviewExpense = (id: number, action: 'APPROVE' | 'REJECT', opinion?: string) =>
+  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/review`, {
+    method: 'POST', data: { action, opinion },
+  });
+
+export const uploadExpenseAttachment = (claimId: number, itemId: number, kind: 'INVOICE' | 'OTHER', file: File) => {
+  const data = new FormData();
+  data.append('itemId', String(itemId)); data.append('kind', kind); data.append('file', file);
+  return request<API.ApiResponse<{ id: number }>>(`/api/oa/expenses/${claimId}/attachments`, { method: 'POST', data });
+};
+
+export const expenseAttachmentUrl = (id: number) => `/api/oa/expenses/attachments/${id}/content`;

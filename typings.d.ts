@@ -113,6 +113,49 @@ declare namespace ManagementAPI {
     punchCount: number;
     status: 'NO_RECORD' | 'SINGLE' | 'NORMAL';
   };
+
+  type ExpenseAttachment = {
+    id: number;
+    itemId: number;
+    attachmentKind: 'INVOICE' | 'OTHER';
+    fileName: string;
+    contentType: string;
+    fileSize: number;
+  };
+
+  type ExpenseItem = {
+    id?: number;
+    expenseCategory: 'ACCOMMODATION' | 'MEAL' | 'TRANSPORT' | 'OTHER';
+    expenseDate?: string;
+    expenseLocation?: string;
+    amount?: number;
+    remark?: string;
+  };
+
+  type ExpenseApprovalNode = {
+    id: number;
+    sequenceNo: number;
+    orgName?: string;
+    reviewerUserId?: number;
+    reviewerName?: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    opinion?: string;
+    actedAt?: string;
+  };
+
+  type ExpenseClaim = {
+    id: number;
+    claimNo: string;
+    totalAmount: number;
+    status: 'DRAFT' | 'PENDING' | 'REVIEWING' | 'APPROVED' | 'REJECTED';
+    currentReviewerId?: number;
+    submittedAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    items?: ExpenseItem[];
+    attachments?: ExpenseAttachment[];
+    approvalNodes?: ExpenseApprovalNode[];
+  };
 }
 
 declare module '*.less' {
