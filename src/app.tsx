@@ -16,6 +16,10 @@ let redirectingToLogin = false;
 export async function getInitialState(): Promise<{
   currentUser?: API.UserInfo;
 }> {
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/onboarding/')) {
+    appReady = true;
+    return {};
+  }
   try {
     const response = await getCurrentUser();
     if (response.code === 0 && response.data) {
@@ -36,7 +40,7 @@ export function onRouteChange({
 }: {
   location: { pathname: string };
 }) {
-  if (location.pathname === '/login') {
+  if (location.pathname === '/login' || location.pathname.startsWith('/onboarding/')) {
     redirectingToLogin = false;
     return;
   }
@@ -74,7 +78,8 @@ export const request: RequestConfig = {
   responseInterceptors: [
     (response) => {
       const data = response.data as API.ApiResponse<unknown> | undefined;
-      if (data?.code === 401 && history.location.pathname !== '/login') {
+      const publicOnboarding = history.location.pathname.startsWith('/onboarding/');
+      if (data?.code === 401 && history.location.pathname !== '/login' && !publicOnboarding) {
         handleUnauthorized();
       }
       return response;
@@ -82,7 +87,7 @@ export const request: RequestConfig = {
   ],
   errorConfig: {
     errorHandler: (error: any) => {
-      if (error?.response?.status === 401) {
+      if (error?.response?.status === 401 && !history.location.pathname.startsWith('/onboarding/')) {
         handleUnauthorized();
         return;
       }

@@ -119,6 +119,13 @@ export const updateUser = (id: number, data: Record<string, unknown>) =>
     data,
   });
 
+export const deleteUser = (id: number, companyId?: number) => {
+  const query = companyId ? `?companyId=${companyId}` : '';
+  return request<API.ApiResponse<null>>(`/api/system/users/${id}${query}`, {
+    method: 'DELETE',
+  });
+};
+
 export const getUserPositions = (id: number) =>
   request<API.ApiResponse<Record<string, unknown>[]>>(
     `/api/system/users/${id}/positions`,
@@ -140,16 +147,25 @@ export const resetUserPassword = (id: number, newPassword: string) =>
     data: { newPassword },
   });
 
-export const punchAttendance = (remark?: string) =>
+export const punchAttendance = (data?: { latitude: number; longitude: number; accuracy?: number; locationSource?: string; capturedAt?: string; remark?: string }) =>
   request<API.ApiResponse<ManagementAPI.AttendanceSummary>>('/api/oa/attendance/punch', {
     method: 'POST',
-    data: remark ? { remark } : {},
+    data: data || {},
   });
 
 export const listMyAttendance = (from: string, to: string) =>
   request<API.ApiResponse<ManagementAPI.AttendanceSummary[]>>(
     `/api/oa/attendance/my?from=${from}&to=${to}`,
   );
+
+export const listMyAttendancePunches = (date: string) =>
+  request<API.ApiResponse<ManagementAPI.AttendancePunch[]>>(`/api/oa/attendance/my/punches?date=${date}`);
+
+export const listAttendancePunches = (params: { date: string; userId: number; companyId?: number }) => {
+  const query = new URLSearchParams({ date: params.date, userId: String(params.userId) });
+  if (params.companyId) query.set('companyId', String(params.companyId));
+  return request<API.ApiResponse<ManagementAPI.AttendancePunch[]>>(`/api/oa/attendance/records/punches?${query.toString()}`);
+};
 
 export const listAllAttendance = (params: {
   from: string;
@@ -158,13 +174,17 @@ export const listAllAttendance = (params: {
   userId?: number;
   orgUnitId?: number;
   keyword?: string;
+  page?: number;
+  pageSize?: number;
 }) => {
   const query = new URLSearchParams({ from: params.from, to: params.to });
   if (params.companyId) query.set('companyId', String(params.companyId));
   if (params.userId) query.set('userId', String(params.userId));
   if (params.orgUnitId) query.set('orgUnitId', String(params.orgUnitId));
   if (params.keyword) query.set('keyword', params.keyword);
-  return request<API.ApiResponse<ManagementAPI.AttendanceSummary[]>>(
+  if (params.page) query.set('page', String(params.page));
+  if (params.pageSize) query.set('pageSize', String(params.pageSize));
+  return request<API.ApiResponse<{ data: ManagementAPI.AttendanceSummary[]; total: number; page: number; pageSize: number }>>(
     `/api/oa/attendance/records?${query.toString()}`,
   );
 };
@@ -173,12 +193,26 @@ export const adminPunchAttendance = (data: {
   companyId?: number;
   userId: number;
   punchTime: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+  locationSource?: string;
+  capturedAt?: string;
   remark?: string;
 }) =>
   request<API.ApiResponse<ManagementAPI.AttendanceSummary>>('/api/oa/attendance/records/punch', {
     method: 'POST',
     data,
   });
+
+export const createAttendanceCorrection = (data: { requestedPunchTime: string; punchType?: string; latitude?: number; longitude?: number; accuracy?: number; locationSource?: string; locationAddress?: string; reason: string }) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>('/api/oa/attendance/correction-requests', { method: 'POST', data });
+export const listMyAttendanceCorrections = () =>
+  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>('/api/oa/attendance/correction-requests/mine');
+export const listPendingAttendanceCorrections = () =>
+  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>('/api/oa/attendance/correction-requests/pending');
+export const decideAttendanceCorrection = (id: number, approve: boolean, comment?: string) =>
+  request<API.ApiResponse<Record<string, unknown>>>(`/api/oa/attendance/correction-requests/${id}/decision`, { method: 'POST', data: { approve, comment } });
 
 export const listMyExpenses = () =>
   request<API.ApiResponse<ManagementAPI.ExpenseClaim[]>>('/api/oa/expenses/mine');

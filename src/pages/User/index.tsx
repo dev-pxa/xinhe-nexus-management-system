@@ -1,5 +1,6 @@
 import {
   createUser,
+  deleteUser,
   getUserPositions,
   listCompanies,
   listPositions,
@@ -29,7 +30,14 @@ import { useEffect, useState } from 'react';
 
 export default function UserPage() {
   const { initialState } = useModel('@@initialState');
-  const platform = initialState?.currentUser?.roles.includes('PLATFORM_ADMIN');
+  const currentUser = initialState?.currentUser;
+  const platform = currentUser?.roles.includes('PLATFORM_ADMIN');
+  const canDeleteUsers = Boolean(
+    platform ||
+      currentUser?.roles.includes('COMPANY_ADMIN') ||
+      currentUser?.permissions.includes('*') ||
+      currentUser?.permissions.includes('system:user:delete'),
+  );
   const [companies, setCompanies] = useState<ManagementAPI.Company[]>([]);
   const [companyId, setCompanyId] = useState<number | undefined>(
     initialState?.currentUser?.companyId,
@@ -120,8 +128,11 @@ export default function UserPage() {
       title: '操作',
       valueType: 'option',
       render: (_, row) => [
-        <a
+        <Button
           key="edit"
+          type="link"
+          size="small"
+          style={{ padding: 0 }}
           onClick={() => {
             setEditing(row);
             form.setFieldsValue(row);
@@ -129,7 +140,7 @@ export default function UserPage() {
           }}
         >
           编辑
-        </a>,
+        </Button>,
         <a
           key="positions"
           onClick={async () => {
@@ -144,16 +155,34 @@ export default function UserPage() {
         >
           岗位
         </a>,
-        <a
-          key="password"
-          onClick={() => {
-            resetForm.resetFields();
-            setResetUser(row);
-            setResetOpen(true);
-          }}
-        >
-          重置密码
-        </a>,
+        ...(canDeleteUsers && row.id !== currentUser?.id
+          ? [
+              <Button
+                key="delete"
+                type="link"
+                danger
+                size="small"
+                style={{ padding: 0 }}
+                onClick={() =>
+                  Modal.confirm({
+                    title: `确认删除用户“${row.displayName}”？`,
+                    content:
+                      '将解除该用户在当前公司的成员和岗位关系；如果该用户不属于其他公司，其账号将被软删除。历史业务记录会保留。',
+                    okText: '删除用户',
+                    okType: 'danger',
+                    cancelText: '取消',
+                    onOk: async () => {
+                      await deleteUser(row.id, platform ? companyId : undefined);
+                      message.success('用户已删除');
+                      await reload();
+                    },
+                  })
+                }
+              >
+                删除
+              </Button>,
+            ]
+          : []),
       ],
     },
   ];
@@ -273,6 +302,23 @@ export default function UserPage() {
                   { label: '停用', value: 'DISABLED' },
                 ]}
               />
+            </Form.Item>
+          )}
+          {editing && (
+            <Form.Item label="账号安全">
+              <Button
+                icon={<KeyOutlined />}
+                onClick={() => {
+                  resetForm.resetFields();
+                  setResetUser(editing);
+                  setResetOpen(true);
+                }}
+              >
+                重置密码
+              </Button>
+              <span style={{ marginLeft: 12, color: '#8c8c8c' }}>
+                重置后该用户的现有会话将失效
+              </span>
             </Form.Item>
           )}
         </Form>

@@ -1,13 +1,17 @@
 import { login } from '@/services/auth';
 import { setAuthenticatedUser } from '@/services/authState';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  LockOutlined,
+  QuestionCircleOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import {
   LoginForm,
   ProFormCheckbox,
   ProFormText,
 } from '@ant-design/pro-components';
 import { history, useModel } from '@umijs/max';
-import { message } from 'antd';
+import { Button, message, Popover, Space } from 'antd';
 import styles from './index.less';
 
 export default function LoginPage() {
@@ -55,7 +59,31 @@ export default function LoginPage() {
             placeholder="密码"
             rules={[{ required: true, message: '请输入密码' }]}
           />
-          <ProFormCheckbox name="remember">自动登录</ProFormCheckbox>
+          <ProFormCheckbox name="remember">
+            <Space size={4}>
+              <span>自动登录</span>
+              <Popover
+                trigger="click"
+                title="自动登录说明"
+                content={
+                  <div style={{ maxWidth: 280 }}>
+                    勾选后，下次打开系统通常不用重新登录，最长保持30天；公用电脑建议不要勾选。未勾选时，关闭浏览器后通常需要重新登录；如果浏览器一直开着，最长保持12小时。
+                  </div>
+                }
+              >
+                <Button
+                  type="text"
+                  size="small"
+                  aria-label="查看自动登录说明"
+                  icon={<QuestionCircleOutlined />}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                />
+              </Popover>
+            </Space>
+          </ProFormCheckbox>
         </LoginForm>
       </div>
     </div>

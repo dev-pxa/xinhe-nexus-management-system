@@ -9,6 +9,7 @@ declare namespace API {
     permissions: string[];
     mustChangePassword: boolean;
     authVersion: number;
+    headquarters: boolean;
   };
 
   type PersonalProfile = {
@@ -90,6 +91,34 @@ declare namespace ManagementAPI {
     version: number;
   };
 
+  type OnboardingInvitation = {
+    id: number;
+    candidateName: string;
+    departmentId: number;
+    departmentName: string;
+    positionId: number;
+    positionName: string;
+    status: string;
+    profileStatus: string;
+    profileId?: number;
+    expiresAt: string;
+    submittedAt?: string;
+    createdAt: string;
+  };
+
+  type EmployeeProfile = {
+    id: number;
+    candidateName: string;
+    username: string;
+    departmentName: string;
+    positionName: string;
+    phone?: string;
+    email?: string;
+    gender?: string;
+    birthDate?: string;
+    educations: Array<{ startMonth: string; endMonth: string; educationLevel: string; schoolName: string }>;
+  };
+
   type Permission = {
     id: number;
     parentId?: number;
@@ -112,6 +141,36 @@ declare namespace ManagementAPI {
     lastPunchTime?: string;
     punchCount: number;
     status: 'NO_RECORD' | 'SINGLE' | 'NORMAL';
+  };
+
+  type AttendanceCorrection = {
+    id: number;
+    userId?: number;
+    userName?: string;
+    attendanceDate: string;
+    punchType: string;
+    requestedPunchTime: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+    reason: string;
+    locationAddress?: string;
+    latitude?: number;
+    longitude?: number;
+    locationAccuracy?: number;
+    locationSource?: string;
+    reviewComment?: string;
+  };
+
+  type AttendancePunch = {
+    id: number;
+    punchTime: string;
+    punchType: string;
+    source: string;
+    latitude?: number;
+    longitude?: number;
+    locationAccuracy?: number;
+    locationSource?: string;
+    remark?: string;
+    createdAt?: string;
   };
 
   type ExpenseAttachment = {

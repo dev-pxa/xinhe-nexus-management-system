@@ -214,7 +214,9 @@ export default function OrganizationPage() {
     Modal.confirm({
       title: `确认删除“${selectedOrg.orgName}”？`,
       content: '删除后组织将进入历史状态，编码不会再次使用。',
-      okButtonProps: { danger: true },
+      okText: '删除组织',
+      okType: 'danger',
+      cancelText: '取消',
       onOk: async () => {
         await deleteOrganization(selectedOrg.id);
         message.success('组织已删除');
@@ -281,8 +283,12 @@ export default function OrganizationPage() {
         <a key="permission" onClick={() => openPermissions(row)}>
           配置权限
         </a>,
-        <a
+        <Button
           key="delete"
+          type="link"
+          danger
+          size="small"
+          style={{ padding: 0 }}
           onClick={async () => {
             const impact = (await positionDeleteImpact(row.id)).data;
             if (!impact.canDelete) {
@@ -291,16 +297,20 @@ export default function OrganizationPage() {
             }
             Modal.confirm({
               title: `确认删除岗位“${row.positionName}”？`,
-              okButtonProps: { danger: true },
+              content: '删除后，该岗位将不再可用于组织和权限配置。',
+              okText: '删除岗位',
+              okType: 'danger',
+              cancelText: '取消',
               onOk: async () => {
                 await deletePosition(row.id);
+                message.success('岗位已删除');
                 await reload();
               },
             });
           }}
         >
           删除
-        </a>,
+        </Button>,
       ],
     },
   ];
@@ -352,11 +362,14 @@ export default function OrganizationPage() {
                 />
                 <Button
                   size="small"
+                  type="link"
                   danger
                   icon={<DeleteOutlined />}
                   disabled={!selectedOrg || !selectedOrg.parentId}
                   onClick={removeOrg}
-                />
+                >
+                  删除
+                </Button>
               </Space>
             }
           >
@@ -569,25 +582,63 @@ export default function OrganizationPage() {
         }}
       >
         {Array.from(new Set(permissions.map((item) => item.moduleCode))).map(
-          (moduleCode) => (
-            <Card
-              key={moduleCode}
-              size="small"
-              title={moduleCode}
-              style={{ marginBottom: 12 }}
-            >
-              <Checkbox.Group
-                value={checkedPermissions}
-                onChange={(values) => setCheckedPermissions(values as number[])}
-                options={permissions
-                  .filter((item) => item.moduleCode === moduleCode)
-                  .map((item) => ({
+          (moduleCode) => {
+            const modulePermissions = permissions.filter(
+              (item) => item.moduleCode === moduleCode,
+            );
+            const moduleIds = modulePermissions.map((item) => item.id);
+            const selectedModuleIds = moduleIds.filter((id) =>
+              checkedPermissions.includes(id),
+            );
+            const allChecked =
+              moduleIds.length > 0 && selectedModuleIds.length === moduleIds.length;
+            const partiallyChecked =
+              selectedModuleIds.length > 0 && !allChecked;
+
+            return (
+              <Card
+                key={moduleCode}
+                size="small"
+                title={
+                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <span>{moduleCode}</span>
+                    <Checkbox
+                      checked={allChecked}
+                      indeterminate={partiallyChecked}
+                      onChange={(event) => {
+                        const next = event.target.checked
+                          ? [...new Set([...checkedPermissions, ...moduleIds])]
+                          : checkedPermissions.filter(
+                              (id) => !moduleIds.includes(id),
+                            );
+                        setCheckedPermissions(next);
+                      }}
+                    >
+                      本模块全选
+                    </Checkbox>
+                  </Space>
+                }
+                style={{ marginBottom: 12 }}
+              >
+                <Checkbox.Group
+                  value={selectedModuleIds}
+                  onChange={(values) => {
+                    const nextModuleIds = values as number[];
+                    const otherModuleIds = checkedPermissions.filter(
+                      (id) => !moduleIds.includes(id),
+                    );
+                    setCheckedPermissions([
+                      ...new Set([...otherModuleIds, ...nextModuleIds]),
+                    ]);
+                  }}
+                  options={modulePermissions.map((item) => ({
                     label: `${item.permissionName}（${item.permissionKind}）`,
                     value: item.id,
                   }))}
-              />
-            </Card>
-          ),
+                />
+              </Card>
+            );
+          },
         )}
       </Modal>
     </PageContainer>
