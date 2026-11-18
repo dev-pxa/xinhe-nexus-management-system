@@ -126,20 +126,31 @@ export const deleteUser = (id: number, companyId?: number) => {
   });
 };
 
-export const getUserPositions = (id: number) =>
-  request<API.ApiResponse<Record<string, unknown>[]>>(
-    `/api/system/users/${id}/positions`,
+export const getUserPosition = (id: number) =>
+  request<API.ApiResponse<ManagementAPI.UserPosition>>(
+    `/api/system/users/${id}/position`,
   );
 
-export const setUserPositions = (
+export const setUserPosition = (
   id: number,
   companyId: number,
-  positionIds: number[],
+  positionId?: number,
 ) =>
   request<API.ApiResponse<null>>(
-    `/api/system/users/${id}/positions?companyId=${companyId}`,
-    { method: 'PUT', data: { positionIds } },
+    `/api/system/users/${id}/position?companyId=${companyId}`,
+    { method: 'PUT', data: { positionId } },
   );
+
+export const getUserPermissions = (id: number) =>
+  request<API.ApiResponse<ManagementAPI.UserPermissionAssignment>>(
+    `/api/system/users/${id}/permissions`,
+  );
+
+export const setUserPermissions = (id: number, directPermissionIds: number[]) =>
+  request<API.ApiResponse<null>>(`/api/system/users/${id}/permissions`, {
+    method: 'PUT',
+    data: { directPermissionIds },
+  });
 
 export const resetUserPassword = (id: number, newPassword: string) =>
   request<API.ApiResponse<null>>(`/api/system/users/${id}/reset-password`, {
@@ -147,11 +158,21 @@ export const resetUserPassword = (id: number, newPassword: string) =>
     data: { newPassword },
   });
 
-export const punchAttendance = (data?: { latitude: number; longitude: number; accuracy?: number; locationSource?: string; capturedAt?: string; remark?: string }) =>
-  request<API.ApiResponse<ManagementAPI.AttendanceSummary>>('/api/oa/attendance/punch', {
-    method: 'POST',
-    data: data || {},
-  });
+export const punchAttendance = (data?: {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+  locationSource?: string;
+  capturedAt?: string;
+  remark?: string;
+}) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceSummary>>(
+    '/api/oa/attendance/punch',
+    {
+      method: 'POST',
+      data: data || {},
+    },
+  );
 
 export const listMyAttendance = (from: string, to: string) =>
   request<API.ApiResponse<ManagementAPI.AttendanceSummary[]>>(
@@ -159,12 +180,23 @@ export const listMyAttendance = (from: string, to: string) =>
   );
 
 export const listMyAttendancePunches = (date: string) =>
-  request<API.ApiResponse<ManagementAPI.AttendancePunch[]>>(`/api/oa/attendance/my/punches?date=${date}`);
+  request<API.ApiResponse<ManagementAPI.AttendancePunch[]>>(
+    `/api/oa/attendance/my/punches?date=${date}`,
+  );
 
-export const listAttendancePunches = (params: { date: string; userId: number; companyId?: number }) => {
-  const query = new URLSearchParams({ date: params.date, userId: String(params.userId) });
+export const listAttendancePunches = (params: {
+  date: string;
+  userId: number;
+  companyId?: number;
+}) => {
+  const query = new URLSearchParams({
+    date: params.date,
+    userId: String(params.userId),
+  });
   if (params.companyId) query.set('companyId', String(params.companyId));
-  return request<API.ApiResponse<ManagementAPI.AttendancePunch[]>>(`/api/oa/attendance/records/punches?${query.toString()}`);
+  return request<API.ApiResponse<ManagementAPI.AttendancePunch[]>>(
+    `/api/oa/attendance/records/punches?${query.toString()}`,
+  );
 };
 
 export const listAllAttendance = (params: {
@@ -184,9 +216,14 @@ export const listAllAttendance = (params: {
   if (params.keyword) query.set('keyword', params.keyword);
   if (params.page) query.set('page', String(params.page));
   if (params.pageSize) query.set('pageSize', String(params.pageSize));
-  return request<API.ApiResponse<{ data: ManagementAPI.AttendanceSummary[]; total: number; page: number; pageSize: number }>>(
-    `/api/oa/attendance/records?${query.toString()}`,
-  );
+  return request<
+    API.ApiResponse<{
+      data: ManagementAPI.AttendanceSummary[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  >(`/api/oa/attendance/records?${query.toString()}`);
 };
 
 export const adminPunchAttendance = (data: {
@@ -200,49 +237,121 @@ export const adminPunchAttendance = (data: {
   capturedAt?: string;
   remark?: string;
 }) =>
-  request<API.ApiResponse<ManagementAPI.AttendanceSummary>>('/api/oa/attendance/records/punch', {
-    method: 'POST',
-    data,
-  });
+  request<API.ApiResponse<ManagementAPI.AttendanceSummary>>(
+    '/api/oa/attendance/records/punch',
+    {
+      method: 'POST',
+      data,
+    },
+  );
 
-export const createAttendanceCorrection = (data: { requestedPunchTime: string; punchType?: string; latitude?: number; longitude?: number; accuracy?: number; locationSource?: string; locationAddress?: string; reason: string }) =>
-  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>('/api/oa/attendance/correction-requests', { method: 'POST', data });
+export const createAttendanceCorrection = (data: {
+  requestedPunchTime: string;
+  punchType?: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+  locationSource?: string;
+  locationAddress?: string;
+  reason: string;
+}) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>(
+    '/api/oa/attendance/correction-requests',
+    { method: 'POST', data },
+  );
 export const listMyAttendanceCorrections = () =>
-  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>('/api/oa/attendance/correction-requests/mine');
+  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>(
+    '/api/oa/attendance/correction-requests/mine',
+  );
 export const listPendingAttendanceCorrections = () =>
-  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>('/api/oa/attendance/correction-requests/pending');
-export const decideAttendanceCorrection = (id: number, approve: boolean, comment?: string) =>
-  request<API.ApiResponse<Record<string, unknown>>>(`/api/oa/attendance/correction-requests/${id}/decision`, { method: 'POST', data: { approve, comment } });
+  request<API.ApiResponse<ManagementAPI.AttendanceCorrection[]>>(
+    '/api/oa/attendance/correction-requests/pending',
+  );
+export const decideAttendanceCorrection = (
+  id: number,
+  approve: boolean,
+  comment?: string,
+) =>
+  request<API.ApiResponse<Record<string, unknown>>>(
+    `/api/oa/attendance/correction-requests/${id}/decision`,
+    { method: 'POST', data: { approve, comment } },
+  );
 
 export const listMyExpenses = () =>
-  request<API.ApiResponse<ManagementAPI.ExpenseClaim[]>>('/api/oa/expenses/mine');
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim[]>>(
+    '/api/oa/expenses/mine',
+  );
+
+export const listPendingExpenses = () =>
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim[]>>(
+    '/api/oa/expenses/pending',
+  );
 
 export const createExpense = () =>
-  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>('/api/oa/expenses', { method: 'POST' });
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>('/api/oa/expenses', {
+    method: 'POST',
+  });
 
 export const getExpense = (id: number) =>
-  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>(`/api/oa/expenses/${id}`);
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>(
+    `/api/oa/expenses/${id}`,
+  );
 
-export const saveExpense = (id: number, items: ManagementAPI.ExpenseItem[]) =>
-  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>(`/api/oa/expenses/${id}`, {
-    method: 'PUT', data: { items },
+export const saveExpense = (
+  id: number,
+  items: ManagementAPI.ExpenseItem[],
+) =>
+  request<API.ApiResponse<ManagementAPI.ExpenseClaim>>(
+    `/api/oa/expenses/${id}`,
+    {
+      method: 'PUT',
+      data: { items },
+    },
+  );
+
+export const submitExpense = (id: number, version: number) =>
+  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/submit`, {
+    method: 'POST',
+    data: { version },
   });
 
-export const submitExpense = (id: number) =>
-  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/submit`, { method: 'POST' });
+export const withdrawExpense = (id: number, version: number) =>
+  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/withdraw`, {
+    method: 'POST',
+    data: { version },
+  });
 
 export const deleteExpense = (id: number) =>
-  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}`, { method: 'DELETE' });
-
-export const reviewExpense = (id: number, action: 'APPROVE' | 'REJECT', opinion?: string) =>
-  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/review`, {
-    method: 'POST', data: { action, opinion },
+  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}`, {
+    method: 'DELETE',
   });
 
-export const uploadExpenseAttachment = (claimId: number, itemId: number, kind: 'INVOICE' | 'OTHER', file: File) => {
+export const reviewExpense = (
+  id: number,
+  action: 'APPROVE' | 'REJECT',
+  opinion: string,
+  version: number,
+) =>
+  request<API.ApiResponse<null>>(`/api/oa/expenses/${id}/review`, {
+    method: 'POST',
+    data: { action, opinion, version },
+  });
+
+export const uploadExpenseAttachment = (
+  claimId: number,
+  itemId: number,
+  kind: 'INVOICE' | 'OTHER',
+  file: File,
+) => {
   const data = new FormData();
-  data.append('itemId', String(itemId)); data.append('kind', kind); data.append('file', file);
-  return request<API.ApiResponse<{ id: number }>>(`/api/oa/expenses/${claimId}/attachments`, { method: 'POST', data });
+  data.append('itemId', String(itemId));
+  data.append('kind', kind);
+  data.append('file', file);
+  return request<API.ApiResponse<{ id: number }>>(
+    `/api/oa/expenses/${claimId}/attachments`,
+    { method: 'POST', data },
+  );
 };
 
-export const expenseAttachmentUrl = (id: number) => `/api/oa/expenses/attachments/${id}/content`;
+export const expenseAttachmentUrl = (id: number) =>
+  `/api/oa/expenses/attachments/${id}/content`;

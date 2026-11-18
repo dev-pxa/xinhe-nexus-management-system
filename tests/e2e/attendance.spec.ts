@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('员工端定位打卡不展示服务器时间', async ({ page, context }) => {
-  await context.grantPermissions(['geolocation'], { origin: 'http://127.0.0.1:8000' });
+  await context.grantPermissions(['geolocation'], { origin: 'http://127.0.0.1:18082' });
   await context.setGeolocation({ latitude: 30.2741, longitude: 120.1551, accuracy: 12 });
   await page.route('**/api/oa/attendance/my**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 0, data: [], message: 'success' }) }));
   await page.route('**/api/oa/attendance/correction-requests/mine', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 0, data: [], message: 'success' }) }));

@@ -15,7 +15,12 @@ export default defineConfig({
   },
   routes: [
     { path: '/login', component: './Login', layout: false },
-    { path: '/onboarding/:token', component: './Onboarding', layout: false, hideInMenu: true },
+    {
+      path: '/onboarding/:token',
+      component: './Onboarding',
+      layout: false,
+      hideInMenu: true,
+    },
     { path: '/', redirect: '/dashboard' },
     {
       name: '工作台',
@@ -220,6 +225,7 @@ export default defineConfig({
       name: 'OA 协同办公',
       icon: 'SolutionOutlined',
       path: '/oa',
+      access: 'canUseOa',
       routes: [
         { path: '/oa', redirect: '/oa/attendance' },
         {
@@ -228,8 +234,16 @@ export default defineConfig({
           exact: true,
           component: './Attendance',
         },
-        { path: '/oa/attendance/:date', component: './AttendanceDetail', hideInMenu: true },
-        { path: '/oa/all-attendance/:userId/:date', component: './AttendanceDetail', hideInMenu: true },
+        {
+          path: '/oa/attendance/:date',
+          component: './AttendanceDetail',
+          hideInMenu: true,
+        },
+        {
+          path: '/oa/all-attendance/:userId/:date',
+          component: './AttendanceDetail',
+          hideInMenu: true,
+        },
         {
           name: '全部打卡记录',
           path: '/oa/all-attendance',
@@ -237,6 +251,12 @@ export default defineConfig({
           access: 'canAllAttendance',
         },
         { name: '我的报销', path: '/oa/expense', component: './ExpenseList' },
+        {
+          name: '个人档案',
+          path: '/oa/profile',
+          component: './PersonalProfile',
+          access: 'canPersonalProfile',
+        },
         {
           path: '/oa/expense/new',
           component: './ExpenseEdit',
@@ -252,23 +272,30 @@ export default defineConfig({
           path: '/oa/approval',
           routes: [
             { path: '/oa/approval', redirect: '/oa/approval/my' },
-            { name: '补打卡申请', path: '/oa/approval/correction-requests', component: './ApprovalCenter/MyApplications' },
-            { name: '补打卡审批', path: '/oa/approval/correction-review', component: './ApprovalCenter/PendingApplications', access: 'canAttendanceCorrectionReview' },
+            {
+              name: '补打卡申请',
+              path: '/oa/approval/correction-requests',
+              component: './ApprovalCenter/MyApplications',
+            },
+            {
+              name: '人员档案审批',
+              path: '/oa/approval/profile-change-requests',
+              component: './ApprovalCenter/ProfileChangeRequests',
+              access: 'canProfileApproval',
+            },
+            {
+              name: '补打卡审批',
+              path: '/oa/approval/correction-review',
+              component: './ApprovalCenter/PendingApplications',
+              access: 'canAttendanceCorrectionReview',
+            },
+            {
+              name: '报销审批',
+              path: '/oa/approval/expense-review',
+              component: './ExpenseApprovals',
+            },
           ],
         },
-        { name: '固定资产', path: '/oa/assets', component: './Module' },
-      ],
-    },
-    {
-      name: 'AI 智能中心',
-      icon: 'RobotOutlined',
-      path: '/ai',
-      routes: [
-        { path: '/ai', redirect: '/ai/insights' },
-        { name: '商机洞察', path: '/ai/insights', component: './Module' },
-        { name: '库存预测', path: '/ai/forecast', component: './Module' },
-        { name: '经营分析', path: '/ai/analysis', component: './Module' },
-        { name: '风险预警', path: '/ai/risk', component: './Module' },
       ],
     },
     {
@@ -289,14 +316,18 @@ export default defineConfig({
           path: '/system/organization',
           component: './Organization',
         },
-        { name: '用户管理', path: '/system/users', component: './User' },
-        { name: '人员档案', path: '/system/employees', component: './Employee' },
         {
-          name: '审批流配置',
-          path: '/system/workflows',
-          component: './Module',
+          name: '权限配置',
+          path: '/system/permissions',
+          component: './PermissionConfig',
         },
-        { name: '审计日志', path: '/system/audit', component: './Module' },
+        { name: '用户管理', path: '/system/users', component: './User' },
+        {
+          name: '人员档案',
+          path: '/system/employees',
+          component: './Employee',
+          access: 'canEmployeeProfiles',
+        },
       ],
     },
   ],

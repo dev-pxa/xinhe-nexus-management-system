@@ -215,7 +215,16 @@ export default function CrmSalesOrderEditPage() {
                           danger
                           type="text"
                           icon={<DeleteOutlined />}
-                          onClick={() => remove(name)}
+                          onClick={() =>
+                            Modal.confirm({
+                              title: `确认删除商品 ${index + 1}？`,
+                              content: '删除后该商品明细将被移除。',
+                              okText: '确认删除',
+                              okType: 'danger',
+                              cancelText: '取消',
+                              onOk: () => remove(name),
+                            })
+                          }
                         >
                           删除
                         </Button>

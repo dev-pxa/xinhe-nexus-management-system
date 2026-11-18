@@ -8,7 +8,7 @@ export default function ErpOrders(){return <PageContainer title="ERP销售订单
   {title:'正式订单号',dataIndex:'orderNo'},
   {title:'客户名称',dataIndex:'customerName'},
   {title:'销售人员',dataIndex:'salespersonName',search:false},
-  {title:'履约状态',dataIndex:'status',valueType:'select',fieldProps:{options:Object.entries(labels).map(([value,label])=>({value,label}))},render:(_,r:any)=><Tag>{labels[r.fulfillmentStatus]||r.fulfillmentStatus}</Tag>},
+  {title:'履约状态',dataIndex:'status',valueType:'select',fieldProps:{options:Object.entries(labels).map(([value,label])=>({value,label}))},render:(_,r:any)=><Tag>{labels[r.fulfillmentStatus]||'未知状态'}</Tag>},
   {title:'订单金额',dataIndex:'totalAmount',search:false,render:(_,r:any)=>`¥${Number(r.totalAmount).toFixed(2)}`},
   {title:'同步时间',dataIndex:'createdAt',search:false},
   {title:'操作',valueType:'option',render:(_,r:any)=><a onClick={()=>history.push(`/erp/orders/${r.id}`)}>详情</a>},

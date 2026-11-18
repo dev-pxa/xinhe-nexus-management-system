@@ -42,10 +42,10 @@ export default function MyApplicationsPage() {
     <ProTable<ManagementAPI.AttendanceCorrection> rowKey="id" search={false} options={false} loading={loading} dataSource={data} pagination={{ pageSize: 10 }} locale={{ emptyText: <Empty description="暂无补打卡申请" /> }} columns={[
       { title: '补打卡日期', dataIndex: 'attendanceDate' },
       { title: '补打卡时间', dataIndex: 'requestedPunchTime' },
-      { title: '类型', dataIndex: 'punchType', render: (value) => punchTypeLabel[value] || value || '-' },
+      { title: '类型', dataIndex: 'punchType', render: (value) => punchTypeLabel[value] || '未知打卡类型' },
       { title: '申请原因', dataIndex: 'reason' },
       { title: '申请位置', dataIndex: 'locationAddress', render: (value) => value || '-' },
-      { title: '状态', dataIndex: 'status', render: (value) => { const [label, color] = statusMeta[value] || [value || '-', 'default']; return <Tag color={color}>{label}</Tag>; } },
+      { title: '状态', dataIndex: 'status', render: (value) => { const [label, color] = statusMeta[value] || ['未知状态', 'default']; return <Tag color={color}>{label}</Tag>; } },
       { title: '审批意见', dataIndex: 'reviewComment', render: (value) => value || '-' },
       { title: '操作', render: (_value, row) => row.status === 'REJECTED' ? <Button type="link" onClick={() => openReapply(row)}>重新申请</Button> : '-' },
     ]} />

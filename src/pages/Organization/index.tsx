@@ -3,30 +3,21 @@ import {
   createPosition,
   deleteOrganization,
   deletePosition,
-  getPositionPermissions,
   listCompanies,
   listOrganizations,
-  listPermissions,
   listPositions,
   organizationDeleteImpact,
   positionDeleteImpact,
-  setPositionPermissions,
   updateOrganization,
   updatePosition,
 } from '@/services/management';
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  SafetyCertificateOutlined,
-} from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
+import { history, useModel } from '@umijs/max';
 import {
   Button,
   Card,
-  Checkbox,
   Col,
   Empty,
   Form,
@@ -115,16 +106,9 @@ export default function OrganizationPage() {
   const [selectedId, setSelectedId] = useState<number>();
   const [orgOpen, setOrgOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
-  const [permissionOpen, setPermissionOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<ManagementAPI.Organization>();
   const [editingPosition, setEditingPosition] =
     useState<ManagementAPI.Position>();
-  const [permissionPosition, setPermissionPosition] =
-    useState<ManagementAPI.Position>();
-  const [permissions, setPermissions] = useState<ManagementAPI.Permission[]>(
-    [],
-  );
-  const [checkedPermissions, setCheckedPermissions] = useState<number[]>([]);
   const [orgForm] = Form.useForm();
   const [positionForm] = Form.useForm();
 
@@ -241,17 +225,6 @@ export default function OrganizationPage() {
     await reload();
   };
 
-  const openPermissions = async (position: ManagementAPI.Position) => {
-    const [catalog, selected] = await Promise.all([
-      listPermissions(),
-      getPositionPermissions(position.id),
-    ]);
-    setPermissions(catalog.data || []);
-    setCheckedPermissions(selected.data || []);
-    setPermissionPosition(position);
-    setPermissionOpen(true);
-  };
-
   const positionColumns: ProColumns<ManagementAPI.Position>[] = [
     { title: '岗位编码', dataIndex: 'positionCode', copyable: true },
     { title: '岗位名称', dataIndex: 'positionName' },
@@ -280,7 +253,12 @@ export default function OrganizationPage() {
         >
           编辑
         </a>,
-        <a key="permission" onClick={() => openPermissions(row)}>
+        <a
+          key="permission"
+          onClick={() =>
+            history.push(`/system/permissions?positionId=${row.id}`)
+          }
+        >
           配置权限
         </a>,
         <Button
@@ -558,88 +536,6 @@ export default function OrganizationPage() {
             />
           </Form.Item>
         </Form>
-      </Modal>
-
-      <Modal
-        title={
-          <Space>
-            <SafetyCertificateOutlined />
-            配置“{permissionPosition?.positionName}”权限
-          </Space>
-        }
-        open={permissionOpen}
-        width={720}
-        onCancel={() => setPermissionOpen(false)}
-        onOk={async () => {
-          if (!permissionPosition) return;
-          await setPositionPermissions(
-            permissionPosition.id,
-            checkedPermissions,
-          );
-          message.success('岗位权限已更新');
-          setPermissionOpen(false);
-          await reload();
-        }}
-      >
-        {Array.from(new Set(permissions.map((item) => item.moduleCode))).map(
-          (moduleCode) => {
-            const modulePermissions = permissions.filter(
-              (item) => item.moduleCode === moduleCode,
-            );
-            const moduleIds = modulePermissions.map((item) => item.id);
-            const selectedModuleIds = moduleIds.filter((id) =>
-              checkedPermissions.includes(id),
-            );
-            const allChecked =
-              moduleIds.length > 0 && selectedModuleIds.length === moduleIds.length;
-            const partiallyChecked =
-              selectedModuleIds.length > 0 && !allChecked;
-
-            return (
-              <Card
-                key={moduleCode}
-                size="small"
-                title={
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <span>{moduleCode}</span>
-                    <Checkbox
-                      checked={allChecked}
-                      indeterminate={partiallyChecked}
-                      onChange={(event) => {
-                        const next = event.target.checked
-                          ? [...new Set([...checkedPermissions, ...moduleIds])]
-                          : checkedPermissions.filter(
-                              (id) => !moduleIds.includes(id),
-                            );
-                        setCheckedPermissions(next);
-                      }}
-                    >
-                      本模块全选
-                    </Checkbox>
-                  </Space>
-                }
-                style={{ marginBottom: 12 }}
-              >
-                <Checkbox.Group
-                  value={selectedModuleIds}
-                  onChange={(values) => {
-                    const nextModuleIds = values as number[];
-                    const otherModuleIds = checkedPermissions.filter(
-                      (id) => !moduleIds.includes(id),
-                    );
-                    setCheckedPermissions([
-                      ...new Set([...otherModuleIds, ...nextModuleIds]),
-                    ]);
-                  }}
-                  options={modulePermissions.map((item) => ({
-                    label: `${item.permissionName}（${item.permissionKind}）`,
-                    value: item.id,
-                  }))}
-                />
-              </Card>
-            );
-          },
-        )}
       </Modal>
     </PageContainer>
   );

@@ -92,7 +92,7 @@ export default function CrmCustomerFollowupsPage() {
           split={false}
           locale={{ emptyText: <Empty description="暂无客户跟踪记录" /> }}
           renderItem={(item) => <List.Item style={{ padding: '0 0 16px' }}>
-            <Card size="small" style={{ width: '100%' }} title={<Space wrap><Typography.Text strong>{item.creatorName || '未知用户'}</Typography.Text><Tag color="blue">{{ VISIT: '拜访', PHONE: '历史记录·电话', WECHAT: '历史记录·微信', ONLINE: '线上', OTHER: '其他' }[item.method] || item.method}</Tag></Space>} extra={<Typography.Text type="secondary">{String(item.occurredAt || '').replace('T', ' ').slice(0, 16)}</Typography.Text>}>
+        <Card size="small" style={{ width: '100%' }} title={<Space wrap><Typography.Text strong>{item.creatorName || '未知用户'}</Typography.Text><Tag color="blue">{{ VISIT: '拜访', PHONE: '历史记录·电话', WECHAT: '历史记录·微信', ONLINE: '线上', OTHER: '其他' }[item.method] || '未知跟进方式'}</Tag></Space>} extra={<Typography.Text type="secondary">{String(item.occurredAt || '').replace('T', ' ').slice(0, 16)}</Typography.Text>}>
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
                 <FollowupField label="沟通内容" value={item.content} />
                 {item.customerFeedback && <FollowupField label="客户反馈" value={item.customerFeedback} />}

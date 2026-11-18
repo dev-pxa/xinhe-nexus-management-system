@@ -17,6 +17,13 @@ export const fulfillmentStatusMeta: Record<string, SalesStatusMeta> = {
   CLOSED: { text: '已关闭', color: 'default' },
 };
 
+export const returnStatusMeta: Record<string, SalesStatusMeta> = {
+  PENDING_APPROVAL: { text: '待审核', color: 'processing' },
+  APPROVED: { text: '待收货', color: 'success' },
+  RECEIVED: { text: '已收货', color: 'default' },
+  REJECTED: { text: '已驳回', color: 'error' },
+};
+
 export const approvalStatus = (value?: string): SalesStatusMeta =>
   (value && approvalStatusMeta[value]) || {
     text: '未知状态',
@@ -25,6 +32,12 @@ export const approvalStatus = (value?: string): SalesStatusMeta =>
 
 export const fulfillmentStatus = (value?: string): SalesStatusMeta =>
   (value && fulfillmentStatusMeta[value]) || {
+    text: '未知状态',
+    color: 'default',
+  };
+
+export const returnStatus = (value?: string): SalesStatusMeta =>
+  (value && returnStatusMeta[value]) || {
     text: '未知状态',
     color: 'default',
   };

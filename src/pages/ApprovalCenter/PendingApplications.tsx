@@ -38,7 +38,7 @@ export default function PendingApplicationsPage() {
       { title: '员工', dataIndex: 'userName' },
       { title: '补打卡日期', dataIndex: 'attendanceDate' },
       { title: '补打卡时间', dataIndex: 'requestedPunchTime' },
-      { title: '类型', dataIndex: 'punchType', render: (value) => punchTypeLabel[value] || value || '-' },
+      { title: '类型', dataIndex: 'punchType', render: (value) => punchTypeLabel[value] || '未知打卡类型' },
       { title: '申请原因', dataIndex: 'reason' },
       { title: '申请位置', dataIndex: 'locationAddress', render: (value) => value || '-' },
       { title: '操作', render: (_value, row) => <Space><Button type="link" onClick={() => approve(row.id)}>通过</Button><Button type="link" danger onClick={() => openReject(row.id)}>驳回</Button></Space> },

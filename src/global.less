@@ -25,3 +25,28 @@ body {
   border-color: #eef1f5;
   box-shadow: none;
 }
+
+.manual-sider-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  color: #445064;
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+}
+
+.ant-pro-sider-link-menu .ant-menu-item:hover .manual-sider-link,
+.ant-pro-sider-link-menu .ant-menu-item-selected .manual-sider-link {
+  color: #1766aa;
+}
+
+.ant-pro-sider-collapsed .manual-sider-link {
+  justify-content: center;
+}
+
+.ant-pro-sider-collapsed .manual-sider-link span {
+  display: none;
+}

@@ -86,7 +86,7 @@ declare namespace ManagementAPI {
     companyId: number;
     companyName: string;
     companyAdmin: boolean;
-    positionNames?: string;
+    positionName?: string;
     lastLoginAt?: string;
     version: number;
   };
@@ -116,7 +116,32 @@ declare namespace ManagementAPI {
     email?: string;
     gender?: string;
     birthDate?: string;
-    educations: Array<{ startMonth: string; endMonth: string; educationLevel: string; schoolName: string }>;
+    idType?: string;
+    idNumber?: string;
+    address?: string;
+    emergencyContactName?: string;
+    emergencyContactRelation?: string;
+    emergencyContactPhone?: string;
+    status?: string;
+    submittedAt?: string;
+    educations: Array<{
+      startMonth: string;
+      endMonth: string;
+      educationLevel: string;
+      schoolName: string;
+    }>;
+  };
+
+  type ProfileChangeRequest = {
+    id: number;
+    status: string;
+    beforeData?: string;
+    afterData?: string;
+    reviewComment?: string;
+    createdAt: string;
+    reviewedAt?: string;
+    approverName?: string;
+    applicantName?: string;
   };
 
   type Permission = {
@@ -127,6 +152,21 @@ declare namespace ManagementAPI {
     permissionKind: 'MODULE' | 'MENU' | 'ACTION';
     moduleCode: string;
     status: string;
+  };
+
+  type UserPosition = {
+    positionId?: number;
+    positionCode?: string;
+    positionName?: string;
+    orgUnitId?: number;
+    orgName?: string;
+  };
+
+  type UserPermissionAssignment = {
+    positionId?: number;
+    positionPermissionIds: number[];
+    directPermissionIds: number[];
+    effectivePermissionIds: number[];
   };
 
   type AttendanceSummary = {
@@ -193,12 +233,15 @@ declare namespace ManagementAPI {
 
   type ExpenseApprovalNode = {
     id: number;
+    approvalRound?: number;
     sequenceNo: number;
+    nodeType?: 'DEPARTMENT_MANAGER' | 'FINAL_APPROVER';
     orgName?: string;
     reviewerUserId?: number;
     reviewerName?: string;
     preview?: boolean;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    reviewerPositionName?: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
     opinion?: string;
     actedAt?: string;
   };
@@ -209,6 +252,13 @@ declare namespace ManagementAPI {
     totalAmount: number;
     status: 'DRAFT' | 'PENDING' | 'REVIEWING' | 'APPROVED' | 'REJECTED';
     currentReviewerId?: number;
+    currentNodeName?: string;
+    applicantName?: string;
+    applicantOrgName?: string;
+    approvalRound?: number;
+    version: number;
+    canReview?: boolean;
+    canWithdraw?: boolean;
     submittedAt?: string;
     createdAt?: string;
     updatedAt?: string;

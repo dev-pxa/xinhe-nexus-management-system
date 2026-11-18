@@ -1,0 +1,7 @@
+interface:
+  display_name: "操作手册编写与审查"
+  short_description: "编写、审查并同步项目操作手册到飞书"
+  default_prompt: "使用 $manual-author-review 编写或审查当前项目的操作手册，并同步更新对应飞书文档。"
+
+policy:
+  allow_implicit_invocation: true

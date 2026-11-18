@@ -1,12 +1,12 @@
 import {
   createUser,
   deleteUser,
-  getUserPositions,
+  getUserPosition,
   listCompanies,
   listPositions,
   listUsers,
   resetUserPassword,
-  setUserPositions,
+  setUserPosition,
   updateUser,
 } from '@/services/management';
 import { PASSWORD_REQUIREMENT, validatePassword } from '@/utils/password';
@@ -103,7 +103,7 @@ export default function UserPage() {
           } as ProColumns<ManagementAPI.User>,
         ]
       : []),
-    { title: '岗位', dataIndex: 'positionNames', ellipsis: true },
+    { title: '岗位', dataIndex: 'positionName', ellipsis: true },
     { title: '手机号', dataIndex: 'phone' },
     {
       title: '身份',
@@ -144,10 +144,9 @@ export default function UserPage() {
         <a
           key="positions"
           onClick={async () => {
-            const response = await getUserPositions(row.id);
-            const current = response.data || [];
+            const response = await getUserPosition(row.id);
             positionForm.setFieldsValue({
-              positionIds: current.map((item) => item.positionId),
+              positionId: response.data?.positionId,
             });
             setPositionUser(row);
             setPositionOpen(true);
@@ -172,7 +171,10 @@ export default function UserPage() {
                     okType: 'danger',
                     cancelText: '取消',
                     onOk: async () => {
-                      await deleteUser(row.id, platform ? companyId : undefined);
+                      await deleteUser(
+                        row.id,
+                        platform ? companyId : undefined,
+                      );
                       message.success('用户已删除');
                       await reload();
                     },
@@ -277,9 +279,22 @@ export default function UserPage() {
             </Form.Item>
           </Space>
           {!editing && (
-            <Form.Item name="positionIds" label="岗位">
+            <Form.Item
+              name="positionId"
+              label="岗位"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator: (_, value) =>
+                    getFieldValue('companyAdmin') || value
+                      ? Promise.resolve()
+                      : Promise.reject(new Error('普通用户必须选择岗位')),
+                }),
+              ]}
+            >
               <Select
-                mode="multiple"
+                allowClear
+                showSearch
+                optionFilterProp="label"
                 options={positions.map((item) => ({
                   label: `${item.orgName} / ${item.positionName}`,
                   value: item.id,
@@ -336,20 +351,26 @@ export default function UserPage() {
         onOk={async () => {
           const values = await positionForm.validateFields();
           if (!positionUser || !companyId) return;
-          await setUserPositions(
-            positionUser.id,
-            companyId,
-            values.positionIds || [],
-          );
+          await setUserPosition(positionUser.id, companyId, values.positionId);
           message.success('用户岗位已更新');
           setPositionOpen(false);
           await reload();
         }}
       >
         <Form form={positionForm} layout="vertical">
-          <Form.Item name="positionIds" label="岗位">
+          <Form.Item
+            name="positionId"
+            label="岗位"
+            rules={
+              positionUser?.companyAdmin
+                ? []
+                : [{ required: true, message: '请选择岗位' }]
+            }
+          >
             <Select
-              mode="multiple"
+              allowClear={Boolean(positionUser?.companyAdmin)}
+              showSearch
+              optionFilterProp="label"
               options={positions.map((item) => ({
                 label: `${item.orgName} / ${item.positionName}`,
                 value: item.id,

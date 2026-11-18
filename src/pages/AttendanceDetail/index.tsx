@@ -25,8 +25,8 @@ export default function AttendanceDetailPage() {
   return <PageContainer title={`${displayName ? `${displayName} ` : ''}${date} 打卡明细`} extra={<Button onClick={() => history.push(userId ? '/oa/all-attendance' : '/oa/attendance')}>返回打卡记录</Button>}>
     <ProTable<ManagementAPI.AttendancePunch> rowKey="id" search={false} options={false} loading={loading} dataSource={data} pagination={false} locale={{ emptyText: <Empty description="当天暂无打卡明细" /> }} columns={[
       { title: '打卡时间', dataIndex: 'punchTime', render: (value) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-' },
-      { title: '类型', dataIndex: 'punchType', render: (value) => typeLabel[value] || value || '-' },
-      { title: '来源', dataIndex: 'source', render: (value) => <Tag>{sourceLabel[value] || value || '-'}</Tag> },
+      { title: '类型', dataIndex: 'punchType', render: (value) => typeLabel[value] || '未知打卡类型' },
+      { title: '来源', dataIndex: 'source', render: (value) => <Tag>{sourceLabel[value] || '未知来源'}</Tag> },
       { title: '定位', render: (_, row) => row.latitude != null && row.longitude != null ? `${Number(row.latitude).toFixed(6)}, ${Number(row.longitude).toFixed(6)}` : '-' },
       { title: '备注', dataIndex: 'remark', render: (value) => value || '-' },
     ]} />

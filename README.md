@@ -21,3 +21,32 @@ cp .env.example .env
 ```
 
 访问 http://localhost:18080。前端 Compose 只负责 Web 容器，后端需在 `xinhe-nexus` 仓库单独启动。
+
+## 服务器与 GitHub Actions 部署
+
+域名入口为 `http://nexus.glowlink.ren`。前端容器固定使用宿主机端口 `18080`，
+容器内 Nginx 将 `/api` 代理到管理端 `18081`，将 `/api/app` 代理到 App 端 `18083`。
+因此页面、管理 API 与 App API 均可通过同一个域名访问，且不会占用培训系统的
+Web `80` 或 API `8080` 端口。
+
+在共享服务器的宿主机 Nginx 中启用域名反向代理（只需首次执行）：
+
+```bash
+sudo cp deploy/nginx/nexus.glowlink.ren.conf /etc/nginx/conf.d/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+该配置将域名的 `80` 转发至 `127.0.0.1:18080`。如服务器由面板或负载均衡器管理
+Nginx，请在对应入口创建同等规则，而不要将前端容器改为占用 `80`。
+
+本机通过 SSH 发布：
+
+```bash
+chmod +x scripts/deploy-ssh.sh
+scripts/deploy-ssh.sh
+```
+
+GitHub Actions 在 `master` 分支推送时自动发布。配置本项目专用 SSH Secrets：
+`NEXUS_SSH_HOST`、`NEXUS_SSH_USER`、`NEXUS_SSH_PORT`、`NEXUS_SSH_PRIVATE_KEY`。
+如需覆盖默认目录，设置 Repository Variable `NEXUS_FRONTEND_DEPLOY_PATH`；默认目录为
+`/opt/xinhe-nexus-management-system`。

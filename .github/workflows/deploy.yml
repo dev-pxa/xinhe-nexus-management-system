@@ -1,0 +1,52 @@
+name: Deploy Xinhe Nexus Management UI
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-xinhe-nexus-management-ui
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SSH_HOST: ${{ secrets.NEXUS_SSH_HOST }}
+      SSH_USER: ${{ secrets.NEXUS_SSH_USER }}
+      SSH_PORT: ${{ secrets.NEXUS_SSH_PORT }}
+      SSH_PRIVATE_KEY: ${{ secrets.NEXUS_SSH_PRIVATE_KEY }}
+      DEPLOY_PATH: ${{ vars.NEXUS_FRONTEND_DEPLOY_PATH }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate deployment script
+        run: bash -n scripts/deploy-ssh.sh
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing secret: NEXUS_SSH_HOST}"
+          : "${SSH_USER:?Missing secret: NEXUS_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing secret: NEXUS_SSH_PRIVATE_KEY}"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/xinhe_management_deploy_key
+          chmod 600 ~/.ssh/xinhe_management_deploy_key
+          ssh-keyscan -p "${SSH_PORT:-22}" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SSH_PORT="${SSH_PORT:-22}"
+          export DEPLOY_PATH="${DEPLOY_PATH:-/opt/xinhe-nexus-management-system}"
+          export SSH_KEY_PATH="$HOME/.ssh/xinhe_management_deploy_key"
+          chmod +x scripts/deploy-ssh.sh
+          scripts/deploy-ssh.sh

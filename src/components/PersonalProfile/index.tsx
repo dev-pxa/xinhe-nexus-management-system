@@ -20,6 +20,7 @@ export default function PersonalProfile({ trigger }: { trigger: ReactNode }) {
   const [saving, setSaving] = useState(false);
   const [profileForm] = Form.useForm<API.PersonalProfile>();
   const [passwordForm] = Form.useForm();
+  const canViewPersonalProfile = Boolean(initialState?.currentUser?.companyId);
 
   const openProfile = async () => {
     setProfileOpen(true);
@@ -80,6 +81,11 @@ export default function PersonalProfile({ trigger }: { trigger: ReactNode }) {
         loading={loading}
         footer={(_, { OkBtn, CancelBtn }) => (
           <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+            {canViewPersonalProfile && (
+              <Button onClick={() => history.push('/oa/profile')}>
+                查看个人档案
+              </Button>
+            )}
             <Button
               icon={<KeyOutlined />}
               onClick={() => {

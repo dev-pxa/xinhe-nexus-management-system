@@ -1,4 +1,5 @@
 import { RichTextContent } from '@/components/RichTextEditor';
+import { fulfillmentStatus } from '@/utils/salesStatus';
 import {
   completeErpOrder,
   getErpOrder,
@@ -77,7 +78,9 @@ export default function ErpOrderDetail() {
                 {order.phone || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="履约状态">
-                <Tag>{order.fulfillmentStatus}</Tag>
+                <Tag color={fulfillmentStatus(order.fulfillmentStatus).color}>
+                  {fulfillmentStatus(order.fulfillmentStatus).text}
+                </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="订单金额">
                 ¥{Number(order.totalAmount).toFixed(2)}
