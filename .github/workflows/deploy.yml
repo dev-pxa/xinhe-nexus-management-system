@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       SSH_HOST: ${{ secrets.NEXUS_SSH_HOST }}
@@ -39,7 +39,20 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/xinhe_management_deploy_key
           chmod 600 ~/.ssh/xinhe_management_deploy_key
-          ssh-keyscan -p "${SSH_PORT:-22}" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          known_host_tmp="$(mktemp)"
+          for attempt in $(seq 1 6); do
+            if ssh-keyscan -T 10 -p "${SSH_PORT:-22}" -H "$SSH_HOST" > "$known_host_tmp" 2>/dev/null \
+              && [[ -s "$known_host_tmp" ]]; then
+              cat "$known_host_tmp" >> ~/.ssh/known_hosts
+              break
+            fi
+            if [[ "$attempt" == "6" ]]; then
+              echo "::error::Unable to obtain SSH host key from $SSH_HOST after 6 attempts"
+              exit 1
+            fi
+            echo "SSH host-key scan ${attempt}/6 failed; retrying in 5 seconds..."
+            sleep 5
+          done
 
       - name: Deploy
         shell: bash
