@@ -92,7 +92,18 @@ grep -q 'SERVER_NAME:-nexus.glowlink.ren' docker-compose.yml
 grep -q 'host.docker.internal:18081' docker-compose.yml
 grep -q 'host.docker.internal:18083' docker-compose.yml
 docker compose --env-file .env config --quiet
-docker compose --env-file .env up -d --build --remove-orphans
+for attempt in $(seq 1 3); do
+  echo "Building and starting web container (attempt ${attempt}/3)..."
+  if docker compose --env-file .env up -d --build --remove-orphans; then
+    break
+  fi
+  if [[ "$attempt" == "3" ]]; then
+    echo "Web image build failed after 3 attempts." >&2
+    exit 1
+  fi
+  echo "Docker BuildKit failed; retrying in 15 seconds..." >&2
+  sleep 15
+done
 docker compose --env-file .env ps
 curl -fsS "http://127.0.0.1:${WEB_PORT}/" >/dev/null
 REMOTE

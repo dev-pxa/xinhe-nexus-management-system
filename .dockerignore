@@ -1,7 +1,16 @@
 node_modules
 dist
 .git
+.github
+.codex
 .umi
 .umi-production
+.cache
+.pnpm-store
 .DS_Store
 *.log
+docs
+tests
+test-results
+*.md
+AGENTS.md
