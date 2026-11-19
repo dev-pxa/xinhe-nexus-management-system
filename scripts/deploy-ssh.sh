@@ -17,11 +17,11 @@ LOCAL_ARCHIVE="/tmp/${ARCHIVE_NAME}"
 REMOTE_ARCHIVE="/tmp/${ARCHIVE_NAME}"
 STATUS_ONLY="false"
 
-SCP_CMD=(scp -P "$SSH_PORT")
-SSH_CMD=(ssh -p "$SSH_PORT")
+SCP_CMD=(scp -P "$SSH_PORT" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+SSH_CMD=(ssh -p "$SSH_PORT" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
 if [[ -n "$SSH_KEY_PATH" ]]; then
-  SCP_CMD=(scp -i "$SSH_KEY_PATH" -P "$SSH_PORT")
-  SSH_CMD=(ssh -i "$SSH_KEY_PATH" -p "$SSH_PORT")
+  SCP_CMD=(scp -i "$SSH_KEY_PATH" -P "$SSH_PORT" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+  SSH_CMD=(ssh -i "$SSH_KEY_PATH" -p "$SSH_PORT" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
 fi
 
 if [[ "${1:-}" == "--status" ]]; then
@@ -74,12 +74,28 @@ elif [[ ! -d dist ]]; then
   echo "dist/ is required when WEB_DOCKERFILE=Dockerfile.release" >&2
   exit 1
 fi
-tar "${TAR_EXCLUDES[@]}" -czf "$LOCAL_ARCHIVE" .
+if [[ "$WEB_DOCKERFILE" == "Dockerfile.release" ]]; then
+  # The server only needs these runtime files; do not upload source, tests or node_modules.
+  tar -czf "$LOCAL_ARCHIVE" Dockerfile.release docker-compose.yml nginx.conf.template .dockerignore deploy/nginx dist
+else
+  tar "${TAR_EXCLUDES[@]}" -czf "$LOCAL_ARCHIVE" .
+fi
 cleanup() { rm -f "$LOCAL_ARCHIVE"; }
 trap cleanup EXIT
 
-echo "Uploading release to ${SSH_USER}@${SSH_HOST}:${DEPLOY_PATH}..."
-"${SCP_CMD[@]}" "$LOCAL_ARCHIVE" "${SSH_USER}@${SSH_HOST}:${REMOTE_ARCHIVE}"
+echo "Release archive size: $(du -h "$LOCAL_ARCHIVE" | awk '{print $1}')"
+for attempt in $(seq 1 3); do
+  echo "Uploading release to ${SSH_USER}@${SSH_HOST}:${DEPLOY_PATH} (attempt ${attempt}/3)..."
+  if "${SCP_CMD[@]}" "$LOCAL_ARCHIVE" "${SSH_USER}@${SSH_HOST}:${REMOTE_ARCHIVE}"; then
+    break
+  fi
+  if [[ "$attempt" == "3" ]]; then
+    echo "Release upload failed after 3 attempts." >&2
+    exit 1
+  fi
+  echo "Upload interrupted; retrying in 10 seconds..." >&2
+  sleep 10
+done
 
 "${SSH_CMD[@]}" "${SSH_USER}@${SSH_HOST}" \
   "DEPLOY_PATH='$DEPLOY_PATH' WEB_PORT='$WEB_PORT' SERVER_NAME='$SERVER_NAME' BACKEND_URL='$BACKEND_URL' APP_BACKEND_URL='$APP_BACKEND_URL' WEB_DOCKERFILE='$WEB_DOCKERFILE' REMOTE_ARCHIVE='$REMOTE_ARCHIVE' bash -s" <<'REMOTE'

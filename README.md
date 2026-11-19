@@ -29,15 +29,22 @@ cp .env.example .env
 因此页面、管理 API 与 App API 均可通过同一个域名访问，且不会占用培训系统的
 Web `80` 或 API `8080` 端口。
 
-在共享服务器的宿主机 Nginx 中启用域名反向代理（只需首次执行）：
+在共享服务器中，training 前端必须先迁移到宿主机端口 `18000`，然后由宿主机 Nginx
+统一监听 `80`：Nexus 按域名转发至 `18080`，其他未匹配域名默认转发至 training `18000`。
+按以下顺序首次执行：
 
 ```bash
+# 1. 先发布 training-management-system，使其监听 18000，而非 80。
+# 2. 在服务器安装并启用宿主机 Nginx：
+sudo apt-get update && sudo apt-get install -y nginx
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo cp deploy/nginx/00-training-default.conf /etc/nginx/conf.d/
 sudo cp deploy/nginx/nexus.glowlink.ren.conf /etc/nginx/conf.d/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-该配置将域名的 `80` 转发至 `127.0.0.1:18080`。如服务器由面板或负载均衡器管理
-Nginx，请在对应入口创建同等规则，而不要将前端容器改为占用 `80`。
+如服务器由面板或负载均衡器管理 Nginx，请在对应入口创建同等规则，而不要将前端容器
+改为占用 `80`。
 
 本机通过 SSH 发布：
 
