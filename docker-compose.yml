@@ -2,7 +2,7 @@ services:
   xinhe-nexus-web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ${WEB_DOCKERFILE:-Dockerfile}
     image: xinhe-nexus-web:latest
     container_name: xinhe-nexus-web
     ports:

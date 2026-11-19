@@ -11,6 +11,7 @@ WEB_PORT="${WEB_PORT:-18080}"
 SERVER_NAME="${SERVER_NAME:-nexus.glowlink.ren}"
 BACKEND_URL="${BACKEND_URL:-http://host.docker.internal:18081}"
 APP_BACKEND_URL="${APP_BACKEND_URL:-http://host.docker.internal:18083}"
+WEB_DOCKERFILE="${WEB_DOCKERFILE:-Dockerfile}"
 ARCHIVE_NAME="xinhe-nexus-management-system-release.tgz"
 LOCAL_ARCHIVE="/tmp/${ARCHIVE_NAME}"
 REMOTE_ARCHIVE="/tmp/${ARCHIVE_NAME}"
@@ -38,6 +39,10 @@ if [[ "$WEB_PORT" != "18080" || "$SERVER_NAME" != "nexus.glowlink.ren" || "$BACK
   echo "Xinhe Nexus deployment must use domain nexus.glowlink.ren, WEB_PORT=18080, and backend ports 18081/18083" >&2
   exit 1
 fi
+if [[ "$WEB_DOCKERFILE" != "Dockerfile" && "$WEB_DOCKERFILE" != "Dockerfile.release" ]]; then
+  echo "WEB_DOCKERFILE must be Dockerfile or Dockerfile.release" >&2
+  exit 1
+fi
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_ROOT"
@@ -49,21 +54,27 @@ fi
 
 echo "Packing management web release..."
 rm -f "$LOCAL_ARCHIVE"
-tar \
+TAR_EXCLUDES=(
   --exclude='.git' \
   --exclude='.github' \
   --exclude='.codex' \
   --exclude='node_modules' \
   --exclude='.swc' \
-  --exclude='dist' \
   --exclude='.umi' \
   --exclude='.umi-production' \
   --exclude='.cache' \
   --exclude='.pnpm-store' \
   --exclude='.env' \
   --exclude='.env.*' \
-  --exclude='.DS_Store' \
-  -czf "$LOCAL_ARCHIVE" .
+  --exclude='.DS_Store'
+)
+if [[ "$WEB_DOCKERFILE" == "Dockerfile" ]]; then
+  TAR_EXCLUDES+=(--exclude='dist')
+elif [[ ! -d dist ]]; then
+  echo "dist/ is required when WEB_DOCKERFILE=Dockerfile.release" >&2
+  exit 1
+fi
+tar "${TAR_EXCLUDES[@]}" -czf "$LOCAL_ARCHIVE" .
 cleanup() { rm -f "$LOCAL_ARCHIVE"; }
 trap cleanup EXIT
 
@@ -71,7 +82,7 @@ echo "Uploading release to ${SSH_USER}@${SSH_HOST}:${DEPLOY_PATH}..."
 "${SCP_CMD[@]}" "$LOCAL_ARCHIVE" "${SSH_USER}@${SSH_HOST}:${REMOTE_ARCHIVE}"
 
 "${SSH_CMD[@]}" "${SSH_USER}@${SSH_HOST}" \
-  "DEPLOY_PATH='$DEPLOY_PATH' WEB_PORT='$WEB_PORT' SERVER_NAME='$SERVER_NAME' BACKEND_URL='$BACKEND_URL' APP_BACKEND_URL='$APP_BACKEND_URL' REMOTE_ARCHIVE='$REMOTE_ARCHIVE' bash -s" <<'REMOTE'
+  "DEPLOY_PATH='$DEPLOY_PATH' WEB_PORT='$WEB_PORT' SERVER_NAME='$SERVER_NAME' BACKEND_URL='$BACKEND_URL' APP_BACKEND_URL='$APP_BACKEND_URL' WEB_DOCKERFILE='$WEB_DOCKERFILE' REMOTE_ARCHIVE='$REMOTE_ARCHIVE' bash -s" <<'REMOTE'
 set -euo pipefail
 mkdir -p "$DEPLOY_PATH"
 find "$DEPLOY_PATH" -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
@@ -84,6 +95,7 @@ WEB_PORT=$WEB_PORT
 SERVER_NAME=$SERVER_NAME
 BACKEND_URL=$BACKEND_URL
 APP_BACKEND_URL=$APP_BACKEND_URL
+WEB_DOCKERFILE=$WEB_DOCKERFILE
 EOF
 
 # The shared server's training UI uses port 80; this stack intentionally uses 18080.
@@ -91,6 +103,8 @@ grep -q 'WEB_PORT:-18080' docker-compose.yml
 grep -q 'SERVER_NAME:-nexus.glowlink.ren' docker-compose.yml
 grep -q 'host.docker.internal:18081' docker-compose.yml
 grep -q 'host.docker.internal:18083' docker-compose.yml
+[[ "$WEB_DOCKERFILE" == "Dockerfile" || "$WEB_DOCKERFILE" == "Dockerfile.release" ]]
+[[ -f "$WEB_DOCKERFILE" ]]
 docker compose --env-file .env config --quiet
 for attempt in $(seq 1 3); do
   echo "Building and starting web container (attempt ${attempt}/3)..."

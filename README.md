@@ -50,3 +50,7 @@ GitHub Actions 在 `master` 分支推送时自动发布。配置本项目专用 
 `NEXUS_SSH_HOST`、`NEXUS_SSH_USER`、`NEXUS_SSH_PORT`、`NEXUS_SSH_PRIVATE_KEY`。
 如需覆盖默认目录，设置 Repository Variable `NEXUS_FRONTEND_DEPLOY_PATH`；默认目录为
 `/opt/xinhe-nexus-management-system`。
+
+GitHub Actions 会在 Runner 上缓存依赖并构建 `dist`，服务器只构建 Nginx 运行镜像，避免
+服务器重复执行 pnpm 安装与 Webpack 编译。本机执行 `scripts/deploy-ssh.sh` 时仍使用完整
+Dockerfile 构建，不依赖预先生成的 `dist`。

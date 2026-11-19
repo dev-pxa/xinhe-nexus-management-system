@@ -26,6 +26,23 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Build frontend bundle
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
       - name: Validate deployment script
         run: bash -n scripts/deploy-ssh.sh
 
@@ -61,5 +78,6 @@ jobs:
           export SSH_PORT="${SSH_PORT:-22}"
           export DEPLOY_PATH="${DEPLOY_PATH:-/opt/xinhe-nexus-management-system}"
           export SSH_KEY_PATH="$HOME/.ssh/xinhe_management_deploy_key"
+          export WEB_DOCKERFILE=Dockerfile.release
           chmod +x scripts/deploy-ssh.sh
           scripts/deploy-ssh.sh
