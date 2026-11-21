@@ -277,9 +277,10 @@ export default function ExpenseEditPage() {
 
   return (
     <PageContainer
+      className={styles.page}
       title={claim ? `报销单 ${claim.claimNo}` : '新增报销'}
       extra={
-        <Space>
+        <Space className={styles.pageActions}>
           <Button icon={<InfoCircleOutlined />} onClick={showInstructions}>
             使用说明
           </Button>
@@ -523,7 +524,7 @@ export default function ExpenseEditPage() {
         ) : null}
         <Divider />
         {editable && (
-          <Space>
+          <Space className={styles.bottomActions}>
             <Button loading={loading} onClick={() => void save()}>
               暂存
             </Button>
@@ -542,7 +543,7 @@ export default function ExpenseEditPage() {
           </Button>
         )}
         {claim?.canReview && (
-          <Space>
+          <Space className={styles.bottomActions}>
             <Button
               type="primary"
               loading={reviewing}
@@ -557,6 +558,7 @@ export default function ExpenseEditPage() {
         )}
       </Space>
       <Modal
+        className={styles.previewModal}
         title={previewAttachment?.fileName || '附件预览'}
         open={Boolean(previewAttachment)}
         footer={null}
@@ -565,13 +567,16 @@ export default function ExpenseEditPage() {
         destroyOnClose
       >
         {isImage ? (
-          <Image
-            src={previewUrl}
-            alt={previewAttachment?.fileName}
-            style={{ maxHeight: '70vh', objectFit: 'contain' }}
-          />
+          <div className={styles.imagePreview}>
+            <Image
+              src={previewUrl}
+              alt={previewAttachment?.fileName}
+              style={{ maxHeight: '70vh', objectFit: 'contain' }}
+            />
+          </div>
         ) : (
           <iframe
+            className={styles.previewFrame}
             title={previewAttachment?.fileName || 'PDF附件'}
             src={previewUrl}
             style={{ width: '100%', height: '70vh', border: 0 }}

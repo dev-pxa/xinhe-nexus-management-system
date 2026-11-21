@@ -1,0 +1,44 @@
+.mobileList {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .desktopTable {
+    display: none;
+  }
+
+  .mobileList {
+    display: grid;
+    gap: 12px;
+  }
+
+  .item {
+    padding: 14px;
+    border: 1px solid #e6edf5;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .label {
+    margin-bottom: 12px;
+    color: #172033;
+    font-weight: 600;
+  }
+
+  .valueLabel {
+    margin-bottom: 4px;
+    color: #7b8494;
+    font-size: 12px;
+  }
+
+  .before {
+    margin-bottom: 12px;
+    color: #8c8c8c;
+    overflow-wrap: anywhere;
+  }
+
+  .after {
+    color: #1766aa;
+    overflow-wrap: anywhere;
+  }
+}

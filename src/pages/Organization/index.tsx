@@ -19,6 +19,7 @@ import {
   Button,
   Card,
   Col,
+  Drawer,
   Empty,
   Form,
   Input,
@@ -32,6 +33,7 @@ import {
   Typography,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import styles from '../systemMobile.less';
 
 type TreeNode = {
   key: number;
@@ -106,6 +108,7 @@ export default function OrganizationPage() {
   const [selectedId, setSelectedId] = useState<number>();
   const [orgOpen, setOrgOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
+  const [orgSelectorOpen, setOrgSelectorOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<ManagementAPI.Organization>();
   const [editingPosition, setEditingPosition] =
     useState<ManagementAPI.Position>();
@@ -295,6 +298,7 @@ export default function OrganizationPage() {
 
   return (
     <PageContainer
+      className={styles.page}
       title="组织与岗位"
       content="组织编码和岗位编码由系统生成。岗位权限只控制功能，公司及组织数据边界由系统固定校验。"
       extra={
@@ -315,7 +319,7 @@ export default function OrganizationPage() {
         ) : null
       }
     >
-      <Row gutter={16} align="stretch">
+      <Row className={styles.desktopOnly} gutter={16} align="stretch">
         <Col xs={24} lg={7}>
           <Card
             title="公司内部组织"
@@ -408,7 +412,182 @@ export default function OrganizationPage() {
         </Col>
       </Row>
 
+      <div className={styles.mobileOnly}>
+        <Card className={styles.mobileCard}>
+          <div className={styles.cardTitleRow}>
+            <div>
+              <span className={styles.metricLabel}>当前组织</span>
+              <div className={styles.cardTitle}>
+                {selectedOrg?.orgName || '请选择组织'}
+              </div>
+              {selectedOrg && (
+                <div className={styles.cardSubtitle}>
+                  {selectedOrg.orgCode} ·{' '}
+                  {selectedOrg.effectiveEnabled ? '实际启用' : '实际停用'}
+                </div>
+              )}
+            </div>
+            <Button onClick={() => setOrgSelectorOpen(true)}>切换</Button>
+          </div>
+          <div className={styles.cardActions}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openCreateOrg}
+            >
+              新建组织
+            </Button>
+            <Button
+              icon={<EditOutlined />}
+              disabled={!selectedOrg}
+              onClick={() => {
+                setEditingOrg(selectedOrg);
+                orgForm.setFieldsValue(selectedOrg);
+                setOrgOpen(true);
+              }}
+            >
+              编辑组织
+            </Button>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              disabled={!selectedOrg || !selectedOrg.parentId}
+              onClick={removeOrg}
+            >
+              删除
+            </Button>
+          </div>
+        </Card>
+
+        <div className={styles.mobileSectionHeader}>
+          <Typography.Title level={4}>岗位列表</Typography.Title>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            disabled={!selectedOrg}
+            onClick={() => {
+              setEditingPosition(undefined);
+              positionForm.resetFields();
+              positionForm.setFieldsValue({
+                orgUnitId: selectedId,
+                status: 'ENABLED',
+              });
+              setPositionOpen(true);
+            }}
+          >
+            新建岗位
+          </Button>
+        </div>
+        <div className={styles.mobileList}>
+          {positions.length ? (
+            positions.map((position) => (
+              <Card className={styles.mobileCard} key={position.id}>
+                <div className={styles.cardTitleRow}>
+                  <div>
+                    <div className={styles.cardTitle}>
+                      {position.positionName}
+                    </div>
+                    <div className={styles.cardSubtitle}>
+                      {position.positionCode}
+                    </div>
+                  </div>
+                  <Tag
+                    color={
+                      position.status === 'ENABLED' ? 'success' : 'default'
+                    }
+                  >
+                    {position.status === 'ENABLED' ? '启用' : '停用'}
+                  </Tag>
+                </div>
+                <div className={styles.metricRow}>
+                  <div className={styles.metric}>
+                    <span className={styles.metricLabel}>在岗人数</span>
+                    {position.userCount || 0}
+                  </div>
+                  <div className={styles.metric}>
+                    <span className={styles.metricLabel}>权限数</span>
+                    {position.permissionCount || 0}
+                  </div>
+                </div>
+                <div className={styles.cardActions}>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setEditingPosition(position);
+                      positionForm.setFieldsValue(position);
+                      setPositionOpen(true);
+                    }}
+                  >
+                    编辑
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      history.push(
+                        `/system/permissions?positionId=${position.id}`,
+                      )
+                    }
+                  >
+                    配置权限
+                  </Button>
+                  <Button
+                    danger
+                    onClick={async () => {
+                      const impact = (await positionDeleteImpact(position.id))
+                        .data;
+                      if (!impact.canDelete) {
+                        message.warning(
+                          `岗位仍有 ${impact.users} 名用户，不能删除`,
+                        );
+                        return;
+                      }
+                      Modal.confirm({
+                        title: `确认删除岗位“${position.positionName}”？`,
+                        content: '删除后，该岗位将不再可用于组织和权限配置。',
+                        okText: '删除岗位',
+                        okType: 'danger',
+                        cancelText: '取消',
+                        onOk: async () => {
+                          await deletePosition(position.id);
+                          message.success('岗位已删除');
+                          await reload();
+                        },
+                      });
+                    }}
+                  >
+                    删除
+                  </Button>
+                </div>
+              </Card>
+            ))
+          ) : (
+            <Empty description="当前组织暂无岗位" />
+          )}
+        </div>
+      </div>
+
+      <Drawer
+        rootClassName={styles.mobileDrawer}
+        title="切换组织"
+        placement="bottom"
+        height="72dvh"
+        open={orgSelectorOpen}
+        onClose={() => setOrgSelectorOpen(false)}
+      >
+        <Tree
+          blockNode
+          defaultExpandAll
+          selectedKeys={selectedId ? [selectedId] : []}
+          treeData={treeData}
+          onSelect={(keys) => {
+            setSelectedId(keys[0] as number);
+            setOrgSelectorOpen(false);
+          }}
+        />
+      </Drawer>
+
       <Modal
+        className={styles.fullScreenModal}
+        width={560}
         title={editingOrg ? '编辑组织' : '新建组织'}
         open={orgOpen}
         onCancel={() => setOrgOpen(false)}
@@ -493,6 +672,8 @@ export default function OrganizationPage() {
       </Modal>
 
       <Modal
+        className={styles.fullScreenModal}
+        width={560}
         title={editingPosition ? '编辑岗位' : '新建岗位'}
         open={positionOpen}
         onCancel={() => setPositionOpen(false)}

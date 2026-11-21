@@ -1,0 +1,302 @@
+.mobileOnly {
+  display: none;
+}
+
+.mobilePermissionBack {
+  display: none;
+}
+
+.mobileList {
+  display: none;
+}
+
+.cardTitleRow,
+.cardActions,
+.metricRow {
+  display: flex;
+}
+
+.cardTitleRow {
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  color: #172033;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cardSubtitle {
+  margin-top: 3px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.metricRow {
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.metric {
+  flex: 1;
+  min-width: 0;
+}
+
+.metricLabel {
+  display: block;
+  margin-bottom: 3px;
+  color: #7b8494;
+  font-size: 12px;
+}
+
+.cardActions {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #edf1f5;
+}
+
+.mobileFilterBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mobileSectionHeader {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 10px;
+
+  :global(.ant-typography) {
+    margin: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    :global(.ant-page-header) {
+      padding: 8px 16px 0;
+    }
+
+    :global(.ant-page-header-content) {
+      display: none;
+    }
+
+    :global(.ant-page-header-heading) {
+      flex-wrap: wrap;
+      row-gap: 8px;
+      margin: 0;
+      padding: 0;
+    }
+
+    :global(.ant-page-header-heading-extra) {
+      width: 100%;
+      margin-inline-start: 0;
+    }
+
+    :global(.ant-page-header-heading-extra .ant-select) {
+      width: 100% !important;
+    }
+
+    :global(.ant-pro-page-container-children-container) {
+      padding: 4px 16px 24px;
+    }
+  }
+
+  .desktopOnly {
+    display: none !important;
+  }
+
+  .mobileOnly {
+    display: block;
+  }
+
+  .responsiveTable {
+    :global(.ant-table-wrapper),
+    :global(.ant-pagination),
+    :global(.ant-pro-table-list-toolbar-setting-items) {
+      display: none !important;
+    }
+
+    :global(.ant-pro-table-list-toolbar-container) {
+      padding-block: 4px 8px;
+    }
+
+    :global(.ant-pro-table-list-toolbar-right),
+    :global(
+        .ant-pro-table-list-toolbar-right
+          > div:not(.ant-pro-table-list-toolbar-setting-items)
+      ) {
+      width: 100%;
+    }
+
+    :global(
+        .ant-pro-table-list-toolbar-right
+          > div:not(.ant-pro-table-list-toolbar-setting-items)
+      ) {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px !important;
+    }
+
+    :global(.ant-pro-table-list-toolbar-setting-items),
+    :global(.ant-pro-table-list-toolbar-setting-item) {
+      display: none !important;
+    }
+
+    :global(.ant-pro-table-list-toolbar-right .ant-select) {
+      width: 100% !important;
+    }
+
+    :global(.ant-pro-table-list-toolbar-right .ant-btn) {
+      min-height: 38px;
+    }
+  }
+
+  .mobileList {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mobileCard {
+    border-color: #e3eaf2;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(23, 102, 170, 0.06);
+
+    :global(.ant-card-body) {
+      padding: 14px;
+    }
+  }
+
+  .cardActions :global(.ant-btn) {
+    min-height: 38px;
+  }
+
+  .fullScreenModal {
+    top: 0;
+    max-width: 100vw;
+    height: 100dvh;
+    margin: 0;
+    padding-bottom: 0;
+
+    :global(.ant-modal-content) {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      border-radius: 0;
+    }
+
+    :global(.ant-modal-body) {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    :global(.ant-modal-footer) {
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+  }
+
+  .mobileDrawer {
+    :global(.ant-drawer-content) {
+      border-radius: 16px 16px 0 0;
+    }
+
+    :global(.ant-tree-node-content-wrapper) {
+      min-height: 40px;
+      padding-block: 8px;
+    }
+  }
+
+  .stackedFormRow {
+    display: block !important;
+
+    :global(.ant-space-item) {
+      width: 100%;
+    }
+  }
+
+  .stackedFormRow :global(.ant-form-item) {
+    width: 100%;
+  }
+
+  .permissionPage {
+    :global(.ant-alert) {
+      margin-bottom: 10px !important;
+      padding: 8px 12px;
+    }
+
+    :global(.ant-alert-description) {
+      display: none;
+    }
+
+    :global(.ant-segmented) {
+      width: 100%;
+      margin-bottom: 10px !important;
+    }
+
+    :global(.ant-segmented-item) {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
+  .permissionTargetCard,
+  .permissionConfigCard {
+    display: none;
+  }
+
+  .permissionTargetCard.mobileStepActive,
+  .permissionConfigCard.mobileStepActive {
+    display: block;
+  }
+
+  .permissionTargetCard,
+  .permissionConfigCard {
+    :global(.ant-card-head),
+    :global(.ant-card-body) {
+      padding-inline: 12px;
+    }
+  }
+
+  .mobilePermissionBack {
+    display: inline-flex;
+    margin-inline-start: -8px;
+  }
+
+  .permissionFilters {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px !important;
+
+    :global(.ant-space-item),
+    :global(.ant-input-affix-wrapper),
+    :global(.ant-select),
+    :global(.ant-btn) {
+      width: 100% !important;
+    }
+
+    :global(.ant-space-item:first-child) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .permissionConfigCard
+    > :global(.ant-card-body)
+    > :global(.ant-row)
+    > :global(.ant-col:last-child) {
+    display: none;
+  }
+
+  .mobilePermissionSave {
+    min-height: 38px;
+  }
+}

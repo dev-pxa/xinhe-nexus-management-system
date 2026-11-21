@@ -1,34 +1,423 @@
-import { getMyProfile, listMyProfileChanges, submitProfileChange, updateMyBasicProfile } from '@/services/profile';
 import { ProfileChangeDiff } from '@/components/ProfileChangeDiff';
 import { setAuthenticatedUser } from '@/services/authState';
+import {
+  getMyProfile,
+  listMyProfileChanges,
+  submitProfileChange,
+  updateMyBasicProfile,
+} from '@/services/profile';
 import { PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Col, DatePicker, Descriptions, Empty, Form, Input, message, Row, Select, Space, Tag } from 'antd';
-import { Modal } from 'antd';
 import { useModel } from '@umijs/max';
+import {
+  Button,
+  Card,
+  Col,
+  DatePicker,
+  Descriptions,
+  Empty,
+  Form,
+  Input,
+  message,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Tag,
+} from 'antd';
 import { useEffect, useState } from 'react';
+import styles from '../oaMobile.less';
 
-const genderLabel: Record<string, string> = { MALE: '男', FEMALE: '女', OTHER: '其他' };
-const idTypeLabel: Record<string, string> = { ID_CARD: '身份证', OTHER: '其他证件' };
-const educationLabel: Record<string, string> = { HIGH_SCHOOL: '高中', SECONDARY: '中专', COLLEGE: '大专', BACHELOR: '本科', MASTER: '硕士', DOCTOR: '博士', OTHER: '其他' };
-const statusLabel: Record<string, [string, string]> = { PENDING: ['待审批', 'processing'], APPROVED: ['已通过', 'success'], REJECTED: ['已驳回', 'error'] };
+const genderLabel: Record<string, string> = {
+  MALE: '男',
+  FEMALE: '女',
+  OTHER: '其他',
+};
+const idTypeLabel: Record<string, string> = {
+  ID_CARD: '身份证',
+  OTHER: '其他证件',
+};
+const educationLabel: Record<string, string> = {
+  HIGH_SCHOOL: '高中',
+  SECONDARY: '中专',
+  COLLEGE: '大专',
+  BACHELOR: '本科',
+  MASTER: '硕士',
+  DOCTOR: '博士',
+  OTHER: '其他',
+};
+const statusLabel: Record<string, [string, string]> = {
+  PENDING: ['待审批', 'processing'],
+  APPROVED: ['已通过', 'success'],
+  REJECTED: ['已驳回', 'error'],
+};
 
 export default function PersonalProfilePage() {
   const [profile, setProfile] = useState<ManagementAPI.EmployeeProfile>();
-  const [changes, setChanges] = useState<ManagementAPI.ProfileChangeRequest[]>([]);
+  const [changes, setChanges] = useState<ManagementAPI.ProfileChangeRequest[]>(
+    [],
+  );
   const [form] = Form.useForm();
   const [basicForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [selectedChange, setSelectedChange] = useState<ManagementAPI.ProfileChangeRequest>();
+  const [selectedChange, setSelectedChange] =
+    useState<ManagementAPI.ProfileChangeRequest>();
   const { initialState, setInitialState } = useModel('@@initialState');
-  const load = async () => { setLoading(true); try { const [profileResponse, changeResponse] = await Promise.all([getMyProfile(), listMyProfileChanges()]); setProfile(profileResponse.data); setChanges(changeResponse.data || []); basicForm.setFieldsValue({ displayName: profileResponse.data?.candidateName, phone: profileResponse.data?.phone, email: profileResponse.data?.email }); } finally { setLoading(false); } };
-  useEffect(() => { void load(); }, []);
-  const saveBasic = async (values: { displayName: string; phone?: string; email?: string }) => { const response = await updateMyBasicProfile(values); if (response.code !== 0) { message.error(response.message); return; } const currentUser = initialState?.currentUser; if (currentUser) { const updatedUser = { ...currentUser, name: response.data?.candidateName || values.displayName }; setAuthenticatedUser(updatedUser); await setInitialState({ ...initialState, currentUser: updatedUser }); } message.success('姓名、手机号和邮箱已同步更新'); await load(); };
-  const submit = async (values: any) => { const educations = (values.educations || []).filter((item: any) => item?.schoolName); const normalizedValues = { ...values, birthDate: values.birthDate?.format?.('YYYY-MM-DD') || values.birthDate, educations }; const payload = Object.fromEntries(Object.entries(normalizedValues).filter(([key, value]) => key === 'educations' ? educations.length > 0 : value !== undefined && value !== null && (typeof value !== 'string' || value.trim() !== ''))); const response = await submitProfileChange(payload); if (response.code !== 0) { message.error(response.message); return; } message.success('档案变更已提交审批'); form.resetFields(); await load(); };
-  return <PageContainer title="个人档案" content="姓名、手机号和邮箱可直接修改；其他档案信息修改后需要审批，部门和岗位不可修改。" loading={loading}>
-    <Card title="基础信息" style={{ marginBottom: 16 }}><Form form={basicForm} layout="vertical" onFinish={saveBasic}><Row gutter={16}><Col span={8}><Form.Item name="displayName" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}><Input maxLength={64} /></Form.Item></Col><Col span={8}><Form.Item name="phone" label="手机号"><Input maxLength={32} /></Form.Item></Col><Col span={8}><Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '邮箱格式不正确' }]}><Input maxLength={128} /></Form.Item></Col></Row><Button type="primary" htmlType="submit">保存基础信息</Button></Form></Card>
-    {profile && <Card title="档案信息" style={{ marginBottom: 16 }}><Descriptions bordered column={2}><Descriptions.Item label="用户名">{profile.username}</Descriptions.Item><Descriptions.Item label="部门">{profile.departmentName}</Descriptions.Item><Descriptions.Item label="岗位">{profile.positionName}</Descriptions.Item><Descriptions.Item label="性别">{genderLabel[profile.gender || ''] || '未填写'}</Descriptions.Item><Descriptions.Item label="出生日期">{profile.birthDate || '未填写'}</Descriptions.Item><Descriptions.Item label="证件类型">{idTypeLabel[profile.idType || ''] || '未填写'}</Descriptions.Item><Descriptions.Item label="证件号码">{profile.idNumber || '未登记'}</Descriptions.Item><Descriptions.Item label="居住地址" span={2}>{profile.address || '未填写'}</Descriptions.Item><Descriptions.Item label="紧急联系人">{profile.emergencyContactName || '未填写'}</Descriptions.Item><Descriptions.Item label="联系人关系">{profile.emergencyContactRelation || '未填写'}</Descriptions.Item><Descriptions.Item label="联系人电话">{profile.emergencyContactPhone || '未填写'}</Descriptions.Item><Descriptions.Item label="教育经历" span={2}>{profile.educations?.length ? profile.educations.map((item) => <div key={`${item.schoolName}-${item.startMonth}`}><Tag color="blue">{educationLabel[item.educationLevel] || '其他'}</Tag> {item.startMonth} 至 {item.endMonth} / {item.schoolName}</div>) : '未填写'}</Descriptions.Item></Descriptions><p style={{ color: '#666', marginTop: 16 }}>部门和岗位由组织架构统一维护，个人档案不可修改。</p></Card>}
-    <Card title="申请修改档案"><Form form={form} layout="vertical" onFinish={submit}><Row gutter={16}><Col span={8}><Form.Item name="gender" label="性别"><Select allowClear options={[{ label: '男', value: 'MALE' }, { label: '女', value: 'FEMALE' }, { label: '其他', value: 'OTHER' }]} /></Form.Item></Col><Col span={8}><Form.Item name="birthDate" label="出生日期"><DatePicker style={{ width: '100%' }} placeholder="请选择出生日期" /></Form.Item></Col><Col span={8}><Form.Item name="idType" label="证件类型"><Select allowClear options={[{ label: '身份证', value: 'ID_CARD' }, { label: '其他证件', value: 'OTHER' }]} /></Form.Item></Col></Row><Form.Item name="idNumber" label="证件号码" extra="不修改证件号时请留空；已登记证件号可直接查看"><Input maxLength={32} placeholder="请输入证件号码" /></Form.Item><Form.Item name="address" label="居住地址"><Input.TextArea maxLength={500} /></Form.Item><Row gutter={16}><Col span={8}><Form.Item name="emergencyContactName" label="紧急联系人"><Input maxLength={64} /></Form.Item></Col><Col span={8}><Form.Item name="emergencyContactRelation" label="联系人关系"><Input maxLength={32} /></Form.Item></Col><Col span={8}><Form.Item name="emergencyContactPhone" label="联系人电话"><Input maxLength={32} /></Form.Item></Col></Row><Form.List name="educations">{(fields, { add, remove }) => <>{fields.map((field) => <Card key={field.key} size="small" style={{ marginBottom: 12 }}><Row gutter={12} align="bottom"><Col span={5}><Form.Item {...field} name={[field.name, 'startMonth']} label="开始月份"><Input type="month" /></Form.Item></Col><Col span={5}><Form.Item {...field} name={[field.name, 'endMonth']} label="结束月份"><Input type="month" /></Form.Item></Col><Col span={5}><Form.Item {...field} name={[field.name, 'educationLevel']} label="学历"><Select style={{ width: '100%' }} options={Object.entries(educationLabel).map(([value, label]) => ({ value, label }))} /></Form.Item></Col><Col span={7}><Form.Item {...field} name={[field.name, 'schoolName']} label="学校"><Input /></Form.Item></Col><Col span={2}><Button type="link" danger onClick={() => remove(field.name)}>删除</Button></Col></Row></Card>)}<div style={{ marginTop: 8 }}><Button type="dashed" onClick={() => add()}>新增教育经历</Button></div></>}</Form.List><div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}><Button type="primary" htmlType="submit">提交审批</Button></div></Form></Card>
-    <Card title="我的变更申请" style={{ marginTop: 16 }}>{changes.length ? changes.map((item) => { const [label, color] = statusLabel[item.status] || ['未知状态', 'default']; return <div key={item.id} style={{ padding: '10px 0', borderBottom: '1px solid #eee' }}><Space><Tag color={color}>{label}</Tag><span>申请时间：{item.createdAt}</span>{item.reviewComment && <span>审批意见：{item.reviewComment}</span>}<Button type="link" onClick={() => setSelectedChange(item)}>查看详情</Button></Space></div>; }) : <Empty description="暂无档案变更申请" />}</Card>
-    <Modal title="档案变更详情" width={900} open={Boolean(selectedChange)} onCancel={() => setSelectedChange(undefined)} footer={<Button onClick={() => setSelectedChange(undefined)}>关闭</Button>}>{selectedChange && <ProfileChangeDiff beforeData={selectedChange.beforeData} afterData={selectedChange.afterData} />}</Modal>
-  </PageContainer>;
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [profileResponse, changeResponse] = await Promise.all([
+        getMyProfile(),
+        listMyProfileChanges(),
+      ]);
+      setProfile(profileResponse.data);
+      setChanges(changeResponse.data || []);
+      basicForm.setFieldsValue({
+        displayName: profileResponse.data?.candidateName,
+        phone: profileResponse.data?.phone,
+        email: profileResponse.data?.email,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    void load();
+  }, []);
+  const saveBasic = async (values: {
+    displayName: string;
+    phone?: string;
+    email?: string;
+  }) => {
+    const response = await updateMyBasicProfile(values);
+    if (response.code !== 0) {
+      message.error(response.message);
+      return;
+    }
+    const currentUser = initialState?.currentUser;
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        name: response.data?.candidateName || values.displayName,
+      };
+      setAuthenticatedUser(updatedUser);
+      await setInitialState({ ...initialState, currentUser: updatedUser });
+    }
+    message.success('姓名、手机号和邮箱已同步更新');
+    await load();
+  };
+  const submit = async (values: any) => {
+    const educations = (values.educations || []).filter(
+      (item: any) => item?.schoolName,
+    );
+    const normalizedValues = {
+      ...values,
+      birthDate: values.birthDate?.format?.('YYYY-MM-DD') || values.birthDate,
+      educations,
+    };
+    const payload = Object.fromEntries(
+      Object.entries(normalizedValues).filter(([key, value]) =>
+        key === 'educations'
+          ? educations.length > 0
+          : value !== undefined &&
+            value !== null &&
+            (typeof value !== 'string' || value.trim() !== ''),
+      ),
+    );
+    const response = await submitProfileChange(payload);
+    if (response.code !== 0) {
+      message.error(response.message);
+      return;
+    }
+    message.success('档案变更已提交审批');
+    form.resetFields();
+    await load();
+  };
+  return (
+    <PageContainer
+      className={styles.page}
+      title="个人档案"
+      content="姓名、手机号和邮箱可直接修改；其他档案信息修改后需要审批，部门和岗位不可修改。"
+      loading={loading}
+    >
+      <Card title="基础信息" style={{ marginBottom: 16 }}>
+        <Form form={basicForm} layout="vertical" onFinish={saveBasic}>
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="displayName"
+                label="姓名"
+                rules={[{ required: true, message: '请输入姓名' }]}
+              >
+                <Input maxLength={64} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="phone" label="手机号">
+                <Input maxLength={32} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="email"
+                label="邮箱"
+                rules={[{ type: 'email', message: '邮箱格式不正确' }]}
+              >
+                <Input maxLength={128} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Button type="primary" htmlType="submit">
+            保存基础信息
+          </Button>
+        </Form>
+      </Card>
+      {profile && (
+        <Card title="档案信息" style={{ marginBottom: 16 }}>
+          <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }}>
+            <Descriptions.Item label="用户名">
+              {profile.username}
+            </Descriptions.Item>
+            <Descriptions.Item label="部门">
+              {profile.departmentName}
+            </Descriptions.Item>
+            <Descriptions.Item label="岗位">
+              {profile.positionName}
+            </Descriptions.Item>
+            <Descriptions.Item label="性别">
+              {genderLabel[profile.gender || ''] || '未填写'}
+            </Descriptions.Item>
+            <Descriptions.Item label="出生日期">
+              {profile.birthDate || '未填写'}
+            </Descriptions.Item>
+            <Descriptions.Item label="证件类型">
+              {idTypeLabel[profile.idType || ''] || '未填写'}
+            </Descriptions.Item>
+            <Descriptions.Item label="证件号码">
+              {profile.idNumber || '未登记'}
+            </Descriptions.Item>
+            <Descriptions.Item label="居住地址" span={2}>
+              {profile.address || '未填写'}
+            </Descriptions.Item>
+            <Descriptions.Item label="紧急联系人">
+              {profile.emergencyContactName || '未填写'}
+            </Descriptions.Item>
+            <Descriptions.Item label="联系人关系">
+              {profile.emergencyContactRelation || '未填写'}
+            </Descriptions.Item>
+            <Descriptions.Item label="联系人电话">
+              {profile.emergencyContactPhone || '未填写'}
+            </Descriptions.Item>
+            <Descriptions.Item label="教育经历" span={2}>
+              {profile.educations?.length
+                ? profile.educations.map((item) => (
+                    <div key={`${item.schoolName}-${item.startMonth}`}>
+                      <Tag color="blue">
+                        {educationLabel[item.educationLevel] || '其他'}
+                      </Tag>{' '}
+                      {item.startMonth} 至 {item.endMonth} / {item.schoolName}
+                    </div>
+                  ))
+                : '未填写'}
+            </Descriptions.Item>
+          </Descriptions>
+          <p style={{ color: '#666', marginTop: 16 }}>
+            部门和岗位由组织架构统一维护，个人档案不可修改。
+          </p>
+        </Card>
+      )}
+      <Card title="申请修改档案">
+        <Form form={form} layout="vertical" onFinish={submit}>
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item name="gender" label="性别">
+                <Select
+                  allowClear
+                  options={[
+                    { label: '男', value: 'MALE' },
+                    { label: '女', value: 'FEMALE' },
+                    { label: '其他', value: 'OTHER' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="birthDate" label="出生日期">
+                <DatePicker
+                  style={{ width: '100%' }}
+                  placeholder="请选择出生日期"
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="idType" label="证件类型">
+                <Select
+                  allowClear
+                  options={[
+                    { label: '身份证', value: 'ID_CARD' },
+                    { label: '其他证件', value: 'OTHER' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            name="idNumber"
+            label="证件号码"
+            extra="不修改证件号时请留空；已登记证件号可直接查看"
+          >
+            <Input maxLength={32} placeholder="请输入证件号码" />
+          </Form.Item>
+          <Form.Item name="address" label="居住地址">
+            <Input.TextArea maxLength={500} />
+          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} md={8}>
+              <Form.Item name="emergencyContactName" label="紧急联系人">
+                <Input maxLength={64} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="emergencyContactRelation" label="联系人关系">
+                <Input maxLength={32} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="emergencyContactPhone" label="联系人电话">
+                <Input maxLength={32} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.List name="educations">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map((field) => (
+                  <Card
+                    key={field.key}
+                    size="small"
+                    style={{ marginBottom: 12 }}
+                  >
+                    <Row gutter={12} align="bottom">
+                      <Col xs={24} md={5}>
+                        <Form.Item
+                          {...field}
+                          name={[field.name, 'startMonth']}
+                          label="开始月份"
+                        >
+                          <Input type="month" />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={5}>
+                        <Form.Item
+                          {...field}
+                          name={[field.name, 'endMonth']}
+                          label="结束月份"
+                        >
+                          <Input type="month" />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={5}>
+                        <Form.Item
+                          {...field}
+                          name={[field.name, 'educationLevel']}
+                          label="学历"
+                        >
+                          <Select
+                            style={{ width: '100%' }}
+                            options={Object.entries(educationLabel).map(
+                              ([value, label]) => ({ value, label }),
+                            )}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={7}>
+                        <Form.Item
+                          {...field}
+                          name={[field.name, 'schoolName']}
+                          label="学校"
+                        >
+                          <Input />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={2}>
+                        <Button
+                          type="link"
+                          danger
+                          onClick={() => remove(field.name)}
+                        >
+                          删除
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+                <div style={{ marginTop: 8 }}>
+                  <Button type="dashed" onClick={() => add()}>
+                    新增教育经历
+                  </Button>
+                </div>
+              </>
+            )}
+          </Form.List>
+          <div
+            style={{
+              marginTop: 24,
+              paddingTop: 16,
+              borderTop: '1px solid #f0f0f0',
+            }}
+          >
+            <Button type="primary" htmlType="submit">
+              提交审批
+            </Button>
+          </div>
+        </Form>
+      </Card>
+      <Card title="我的变更申请" style={{ marginTop: 16 }}>
+        {changes.length ? (
+          changes.map((item) => {
+            const [label, color] = statusLabel[item.status] || [
+              '未知状态',
+              'default',
+            ];
+            return (
+              <Card key={item.id} size="small" style={{ marginBottom: 12 }}>
+                <Space direction="vertical" size={6}>
+                  <Tag color={color}>{label}</Tag>
+                  <span>申请时间：{item.createdAt}</span>
+                  {item.reviewComment && (
+                    <span>审批意见：{item.reviewComment}</span>
+                  )}
+                  <Button
+                    type="link"
+                    style={{ padding: 0 }}
+                    onClick={() => setSelectedChange(item)}
+                  >
+                    查看详情
+                  </Button>
+                </Space>
+              </Card>
+            );
+          })
+        ) : (
+          <Empty description="暂无档案变更申请" />
+        )}
+      </Card>
+      <Modal
+        className={styles.responsiveModal}
+        title="档案变更详情"
+        width={900}
+        open={Boolean(selectedChange)}
+        onCancel={() => setSelectedChange(undefined)}
+        footer={
+          <Button onClick={() => setSelectedChange(undefined)}>关闭</Button>
+        }
+      >
+        {selectedChange && (
+          <ProfileChangeDiff
+            beforeData={selectedChange.beforeData}
+            afterData={selectedChange.afterData}
+          />
+        )}
+      </Modal>
+    </PageContainer>
+  );
 }

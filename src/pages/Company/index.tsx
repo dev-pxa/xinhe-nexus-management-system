@@ -6,8 +6,20 @@ import {
 import { PlusOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Form, Input, message, Modal, Select, Space, Tag } from 'antd';
+import {
+  Button,
+  Card,
+  Empty,
+  Form,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Tag,
+} from 'antd';
 import { useEffect, useState } from 'react';
+import styles from '../systemMobile.less';
 
 export default function CompanyPage() {
   const [companies, setCompanies] = useState<ManagementAPI.Company[]>([]);
@@ -95,32 +107,85 @@ export default function CompanyPage() {
 
   return (
     <PageContainer
+      className={styles.page}
       title="公司管理"
       content="维护独立公司主体及最多四级的渠道协作关系。公司编号由系统自动生成，渠道关系不会产生跨公司数据权限。"
     >
-      <ProTable
-        rowKey="id"
-        search={false}
-        dataSource={companies}
-        columns={columns}
-        pagination={false}
-        toolBarRender={() => [
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditing(undefined);
-              form.resetFields();
-              form.setFieldValue('status', 'ENABLED');
-              setOpen(true);
-            }}
-          >
-            创建公司
-          </Button>,
-        ]}
-      />
+      <div className={styles.responsiveTable}>
+        <ProTable
+          rowKey="id"
+          search={false}
+          dataSource={companies}
+          columns={columns}
+          pagination={false}
+          toolBarRender={() => [
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditing(undefined);
+                form.resetFields();
+                form.setFieldValue('status', 'ENABLED');
+                setOpen(true);
+              }}
+            >
+              创建公司
+            </Button>,
+          ]}
+        />
+      </div>
+      <div className={styles.mobileList}>
+        {companies.length ? (
+          companies.map((company) => (
+            <Card className={styles.mobileCard} key={company.id}>
+              <div className={styles.cardTitleRow}>
+                <div>
+                  <div className={styles.cardTitle}>{company.companyName}</div>
+                  <div className={styles.cardSubtitle}>
+                    {company.companyCode} · {company.channelLevel || 1} 级渠道
+                  </div>
+                </div>
+                <Tag
+                  color={company.status === 'ENABLED' ? 'success' : 'default'}
+                >
+                  {company.status === 'ENABLED' ? '启用' : '停用'}
+                </Tag>
+              </div>
+              <div className={styles.metricRow}>
+                <div className={styles.metric}>
+                  <span className={styles.metricLabel}>上级公司</span>
+                  {company.upstreamCompanyName || '无'}
+                </div>
+                <div className={styles.metric}>
+                  <span className={styles.metricLabel}>联系人</span>
+                  {company.contactName || '-'}
+                </div>
+              </div>
+              <div className={styles.cardSubtitle}>
+                联系电话：{company.contactPhone || '-'}
+              </div>
+              <div className={styles.cardActions}>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setEditing(company);
+                    form.setFieldsValue(company);
+                    setOpen(true);
+                  }}
+                >
+                  编辑公司
+                </Button>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Empty description="暂无公司" />
+        )}
+      </div>
       <Modal
+        className={styles.fullScreenModal}
+        width={560}
         title={editing ? '编辑公司' : '创建公司'}
         open={open}
         onCancel={() => setOpen(false)}
@@ -154,7 +219,11 @@ export default function CompanyPage() {
               />
             </Form.Item>
           )}
-          <Space size={16} style={{ display: 'flex' }}>
+          <Space
+            className={styles.stackedFormRow}
+            size={16}
+            style={{ display: 'flex' }}
+          >
             <Form.Item name="contactName" label="联系人">
               <Input maxLength={64} />
             </Form.Item>

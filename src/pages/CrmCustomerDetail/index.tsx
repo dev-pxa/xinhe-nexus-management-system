@@ -3,6 +3,7 @@ import { PageContainer } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
 import { Button, Card, Descriptions, message, Space, Spin, Tag } from 'antd';
 import { useEffect, useState } from 'react';
+import styles from '../crmPlanMobile.less';
 
 /** 客户只读详情页；信息维护和跟踪分别进入独立页面。 */
 export default function CrmCustomerDetailPage() {
@@ -43,10 +44,11 @@ export default function CrmCustomerDetailPage() {
 
   return (
     <PageContainer
+      className={styles.page}
       title="客户详情"
       onBack={() => history.push('/crm/customers')}
       extra={
-        <Space>
+        <Space className={styles.pageActions}>
           <Button
             onClick={() => history.push(`/crm/customers/${id}/followups`)}
           >
@@ -63,8 +65,8 @@ export default function CrmCustomerDetailPage() {
     >
       <Spin spinning={loading}>
         {customer && (
-          <Card title="客户信息">
-            <Descriptions column={2} bordered>
+          <Card className={styles.detailCard} title="客户信息">
+            <Descriptions column={{ xs: 1, sm: 1, md: 2 }} bordered>
               <Descriptions.Item label="客户编号">
                 {customer.customerNo || '—'}
               </Descriptions.Item>

@@ -9,6 +9,7 @@ import {
   setUserPermissions,
 } from '@/services/management';
 import {
+  ArrowLeftOutlined,
   CheckCircleOutlined,
   DeleteOutlined,
   InfoCircleOutlined,
@@ -39,6 +40,7 @@ import {
   Typography,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import styles from '../systemMobile.less';
 
 type PermissionGroup = {
   key: string;
@@ -224,6 +226,7 @@ export default function PermissionConfigPage() {
   const [onlySelected, setOnlySelected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [mobileStep, setMobileStep] = useState<'TARGET' | 'CONFIG'>('TARGET');
 
   const configurablePermissions = useMemo(
     () =>
@@ -470,7 +473,9 @@ export default function PermissionConfigPage() {
       ? users.map((user) => ({
           id: user.id,
           title: user.displayName,
-          description: `${user.positionName || '未分配岗位'} · ${user.username}`,
+          description: `${user.positionName || '未分配岗位'} · ${
+            user.username
+          }`,
         }))
       : positions.map((position) => ({
           id: position.id,
@@ -499,6 +504,7 @@ export default function PermissionConfigPage() {
 
   return (
     <PageContainer
+      className={`${styles.page} ${styles.permissionPage}`}
       title="权限配置"
       content="岗位提供基础权限，用户只能增减岗位之外的额外权限。"
       extra={
@@ -516,6 +522,7 @@ export default function PermissionConfigPage() {
             />
           )}
           <Button
+            className={styles.desktopOnly}
             icon={<SettingOutlined />}
             onClick={() => history.push('/system/organization')}
           >
@@ -530,9 +537,10 @@ export default function PermissionConfigPage() {
           { label: '岗位权限配置', value: 'POSITION' },
           { label: '用户权限配置', value: 'USER' },
         ]}
-        onChange={(value) =>
-          void changeTargetMode(value as 'POSITION' | 'USER')
-        }
+        onChange={(value) => {
+          setMobileStep('TARGET');
+          void changeTargetMode(value as 'POSITION' | 'USER');
+        }}
         style={{ marginBottom: 16 }}
       />
       <Alert
@@ -547,9 +555,12 @@ export default function PermissionConfigPage() {
         }
         style={{ marginBottom: 16 }}
       />
-      <Row gutter={16} align="stretch">
+      <Row className={styles.permissionLayout} gutter={16} align="stretch">
         <Col xs={24} lg={6}>
           <Card
+            className={`${styles.permissionTargetCard} ${
+              mobileStep === 'TARGET' ? styles.mobileStepActive : ''
+            }`}
             title={targetMode === 'USER' ? '用户列表' : '岗位列表'}
             bodyStyle={{ padding: 8 }}
           >
@@ -558,11 +569,11 @@ export default function PermissionConfigPage() {
                 dataSource={permissionTargets}
                 renderItem={(target) => (
                   <List.Item
-                    onClick={() =>
-                      targetMode === 'USER'
-                        ? void changeUser(target.id)
-                        : void changePosition(target.id)
-                    }
+                    onClick={() => {
+                      if (targetMode === 'USER') void changeUser(target.id);
+                      else void changePosition(target.id);
+                      setMobileStep('CONFIG');
+                    }}
                     style={{
                       cursor: 'pointer',
                       padding: '12px 10px',
@@ -595,8 +606,18 @@ export default function PermissionConfigPage() {
         </Col>
         <Col xs={24} lg={18}>
           <Card
+            className={`${styles.permissionConfigCard} ${
+              mobileStep === 'CONFIG' ? styles.mobileStepActive : ''
+            }`}
             title={
               <Space>
+                <Button
+                  className={styles.mobilePermissionBack}
+                  type="text"
+                  icon={<ArrowLeftOutlined />}
+                  aria-label="返回选择配置对象"
+                  onClick={() => setMobileStep('TARGET')}
+                />
                 <Typography.Text strong>
                   {targetMode === 'USER'
                     ? selectedUser?.displayName || '请选择用户'
@@ -609,6 +630,7 @@ export default function PermissionConfigPage() {
             }
             extra={
               <Button
+                className={styles.mobilePermissionSave}
                 type="primary"
                 icon={<SaveOutlined />}
                 loading={saving}
@@ -621,7 +643,11 @@ export default function PermissionConfigPage() {
               </Button>
             }
           >
-            <Space wrap style={{ width: '100%', marginBottom: 16 }}>
+            <Space
+              className={styles.permissionFilters}
+              wrap
+              style={{ width: '100%', marginBottom: 16 }}
+            >
               <Input
                 allowClear
                 prefix={<SearchOutlined />}

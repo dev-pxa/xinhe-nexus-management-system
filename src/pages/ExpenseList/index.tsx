@@ -7,8 +7,20 @@ import {
 import { PlusOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
-import { Button, Empty, message, Modal, Space, Table, Tag } from 'antd';
+import {
+  Button,
+  Card,
+  Empty,
+  List,
+  message,
+  Modal,
+  Space,
+  Table,
+  Tag,
+} from 'antd';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import styles from '../oaMobile.less';
 
 const statusMap: Record<
   ManagementAPI.ExpenseClaim['status'],
@@ -72,7 +84,11 @@ export default function ExpenseListPage() {
       },
     });
   return (
-    <PageContainer title="我的报销" content="管理本人发起的报销申请">
+    <PageContainer
+      className={styles.page}
+      title="我的报销"
+      content="管理本人发起的报销申请"
+    >
       <Space style={{ marginBottom: 16 }}>
         <Button
           type="primary"
@@ -82,68 +98,134 @@ export default function ExpenseListPage() {
           新增报销
         </Button>
       </Space>
-      <Table
-        rowKey="id"
-        loading={loading}
-        dataSource={records}
-        locale={{ emptyText: <Empty description="暂无报销记录" /> }}
-        columns={[
-          { title: '报销单号', dataIndex: 'claimNo' },
-          {
-            title: '总金额',
-            dataIndex: 'totalAmount',
-            render: (value: number) => `¥${Number(value || 0).toFixed(2)}`,
-          },
-          {
-            title: '状态',
-            dataIndex: 'status',
-            render: (value: ManagementAPI.ExpenseClaim['status']) => {
-              const [label, color] = statusMap[value];
-              return <Tag color={color}>{label}</Tag>;
+      <div className={styles.desktopOnly}>
+        <Table
+          rowKey="id"
+          loading={loading}
+          dataSource={records}
+          locale={{ emptyText: <Empty description="暂无报销记录" /> }}
+          columns={[
+            { title: '报销单号', dataIndex: 'claimNo' },
+            {
+              title: '总金额',
+              dataIndex: 'totalAmount',
+              render: (value: number) => `¥${Number(value || 0).toFixed(2)}`,
             },
-          },
-          { title: '更新时间', dataIndex: 'updatedAt' },
-          {
-            title: '操作',
-            key: 'action',
-            render: (_: unknown, row: ManagementAPI.ExpenseClaim) => (
-              <Space>
-                <Button
-                  type="link"
-                  size="small"
-                  style={{ padding: 0 }}
-                  onClick={() => history.push(`/oa/expense/${row.id}`)}
-                >
-                  {row.status === 'DRAFT' || row.status === 'REJECTED'
-                    ? '编辑'
-                    : '查看'}
-                </Button>
-                {row.status === 'PENDING' && (
+            {
+              title: '状态',
+              dataIndex: 'status',
+              render: (value: ManagementAPI.ExpenseClaim['status']) => {
+                const [label, color] = statusMap[value];
+                return <Tag color={color}>{label}</Tag>;
+              },
+            },
+            { title: '更新时间', dataIndex: 'updatedAt' },
+            {
+              title: '操作',
+              key: 'action',
+              render: (_: unknown, row: ManagementAPI.ExpenseClaim) => (
+                <Space>
                   <Button
                     type="link"
                     size="small"
                     style={{ padding: 0 }}
-                    onClick={() => withdraw(row)}
+                    onClick={() => history.push(`/oa/expense/${row.id}`)}
                   >
-                    撤回
+                    {row.status === 'DRAFT' || row.status === 'REJECTED'
+                      ? '编辑'
+                      : '查看'}
                   </Button>
-                )}
-                {(row.status === 'DRAFT' || row.status === 'REJECTED') && (
-                  <Button
-                    type="link"
-                    danger
-                    size="small"
-                    style={{ padding: 0 }}
-                    onClick={() => remove(row)}
-                  >
-                    删除
-                  </Button>
-                )}
-              </Space>
+                  {row.status === 'PENDING' && (
+                    <Button
+                      type="link"
+                      size="small"
+                      style={{ padding: 0 }}
+                      onClick={() => withdraw(row)}
+                    >
+                      撤回
+                    </Button>
+                  )}
+                  {(row.status === 'DRAFT' || row.status === 'REJECTED') && (
+                    <Button
+                      type="link"
+                      danger
+                      size="small"
+                      style={{ padding: 0 }}
+                      onClick={() => remove(row)}
+                    >
+                      删除
+                    </Button>
+                  )}
+                </Space>
+              ),
+            },
+          ]}
+        />
+      </div>
+      <div className={styles.mobileOnly}>
+        <List
+          loading={loading}
+          dataSource={records}
+          locale={{
+            emptyText: (
+              <div className={styles.emptyCard}>
+                <Empty description="暂无报销记录" />
+              </div>
             ),
-          },
-        ]}
-      />
+          }}
+          pagination={
+            records.length > 10
+              ? { pageSize: 10, showSizeChanger: false }
+              : false
+          }
+          renderItem={(row) => {
+            const [label, color] = statusMap[row.status] || [
+              '未知状态',
+              'default',
+            ];
+            const editable =
+              row.status === 'DRAFT' || row.status === 'REJECTED';
+            return (
+              <List.Item style={{ padding: 0, border: 0 }}>
+                <Card
+                  className={styles.recordCard}
+                  style={{ width: '100%', marginBottom: 12 }}
+                >
+                  <div className={styles.recordHeader}>
+                    <div className={styles.recordTitle}>{row.claimNo}</div>
+                    <Tag color={color}>{label}</Tag>
+                  </div>
+                  <div className={styles.amount}>
+                    ¥{Number(row.totalAmount || 0).toFixed(2)}
+                  </div>
+                  <div className={styles.recordMeta}>
+                    更新时间：
+                    {row.updatedAt
+                      ? dayjs(row.updatedAt).format('YYYY-MM-DD HH:mm')
+                      : '-'}
+                  </div>
+                  <div className={styles.cardActions}>
+                    <Button
+                      type="primary"
+                      onClick={() => history.push(`/oa/expense/${row.id}`)}
+                    >
+                      {editable ? '编辑报销' : '查看详情'}
+                    </Button>
+                    {row.status === 'PENDING' && (
+                      <Button onClick={() => withdraw(row)}>撤回</Button>
+                    )}
+                    {editable && (
+                      <Button danger onClick={() => remove(row)}>
+                        删除
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              </List.Item>
+            );
+          }}
+        />
+      </div>
     </PageContainer>
   );
 }

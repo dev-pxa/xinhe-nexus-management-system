@@ -20,7 +20,9 @@ import { useModel } from '@umijs/max';
 import {
   Alert,
   Button,
+  Card,
   Descriptions,
+  Empty,
   Form,
   Input,
   InputNumber,
@@ -32,6 +34,7 @@ import {
   Typography,
 } from 'antd';
 import { useEffect, useState } from 'react';
+import styles from '../systemMobile.less';
 
 const statusOptions = [
   { label: '待填写', value: 'PENDING' },
@@ -167,83 +170,188 @@ export default function EmployeePage() {
     });
   return (
     <PageContainer
+      className={styles.page}
       title="入职信息采集"
       content="管理员录入姓名、部门和岗位，发送一次性表单；提交后自动生成档案并开通账号。"
     >
-      <ProTable
-        rowKey="id"
-        search={false}
-        dataSource={rows}
-        pagination={{ pageSize: 10 }}
-        columns={[
-          { title: '姓名', dataIndex: 'candidateName' },
-          { title: '部门', dataIndex: 'departmentName' },
-          { title: '岗位', dataIndex: 'positionName' },
-          {
-            title: '采集状态',
-            dataIndex: 'status',
-            render: (_, row) => (
-              <Tag
-                color={
-                  row.status === 'SUBMITTED'
-                    ? 'success'
-                    : row.status === 'PENDING'
-                    ? 'processing'
-                    : 'default'
-                }
-              >
-                {statusLabel[row.status] || '未知状态'}
-              </Tag>
-            ),
-          },
-          {
-            title: '账号状态',
-            dataIndex: 'profileStatus',
-            render: (_, row) =>
-              row.status === 'SUBMITTED' ? (
-                <Tag color="success">已开通</Tag>
-              ) : (
-                <Tag>未开通</Tag>
+      <div className={styles.responsiveTable}>
+        <ProTable
+          rowKey="id"
+          search={false}
+          dataSource={rows}
+          pagination={{ pageSize: 10 }}
+          columns={[
+            { title: '姓名', dataIndex: 'candidateName' },
+            { title: '部门', dataIndex: 'departmentName' },
+            { title: '岗位', dataIndex: 'positionName' },
+            {
+              title: '采集状态',
+              dataIndex: 'status',
+              render: (_, row) => (
+                <Tag
+                  color={
+                    row.status === 'SUBMITTED'
+                      ? 'success'
+                      : row.status === 'PENDING'
+                      ? 'processing'
+                      : 'default'
+                  }
+                >
+                  {statusLabel[row.status] || '未知状态'}
+                </Tag>
               ),
-          },
-          {
-            title: '提交时间',
-            dataIndex: 'submittedAt',
-            valueType: 'dateTime',
-          },
-          {
-            title: '截止时间',
-            dataIndex: 'expiresAt',
-            valueType: 'dateTime',
-            render: (_, row) => (
-              <Space direction="vertical" size={0}>
-                <span>{row.expiresAt}</span>
+            },
+            {
+              title: '账号状态',
+              dataIndex: 'profileStatus',
+              render: (_, row) =>
+                row.status === 'SUBMITTED' ? (
+                  <Tag color="success">已开通</Tag>
+                ) : (
+                  <Tag>未开通</Tag>
+                ),
+            },
+            {
+              title: '提交时间',
+              dataIndex: 'submittedAt',
+              valueType: 'dateTime',
+            },
+            {
+              title: '截止时间',
+              dataIndex: 'expiresAt',
+              valueType: 'dateTime',
+              render: (_, row) => (
+                <Space direction="vertical" size={0}>
+                  <span>{row.expiresAt}</span>
+                  {row.status === 'PENDING' && (
+                    <Typography.Text type="secondary">
+                      请在截止时间前提交
+                    </Typography.Text>
+                  )}
+                </Space>
+              ),
+            },
+            {
+              title: '操作',
+              valueType: 'option',
+              render: (_, row) => (
+                <Space size="small">
+                  {row.status === 'PENDING' && (
+                    <Button
+                      type="link"
+                      icon={<CopyOutlined />}
+                      onClick={() => void copyCurrent(row)}
+                    >
+                      复制链接
+                    </Button>
+                  )}
+                  {row.status !== 'SUBMITTED' && (
+                    <Button
+                      type="link"
+                      icon={<ReloadOutlined />}
+                      onClick={() => {
+                        setRegenerateDays(7);
+                        setRegenerateRow(row);
+                      }}
+                    >
+                      重新生成
+                    </Button>
+                  )}
+                  {row.status === 'PENDING' && (
+                    <Button
+                      type="link"
+                      danger
+                      icon={<StopOutlined />}
+                      onClick={() => revoke(row)}
+                    >
+                      撤销
+                    </Button>
+                  )}
+                  {row.status === 'SUBMITTED' &&
+                    row.profileStatus === 'CREATED' &&
+                    row.profileId && (
+                      <Button
+                        type="link"
+                        icon={<EyeOutlined />}
+                        onClick={async () =>
+                          setProfile(
+                            (await getEmployeeProfile(row.profileId!)).data,
+                          )
+                        }
+                      >
+                        查看档案
+                      </Button>
+                    )}
+                </Space>
+              ),
+            },
+          ]}
+          toolBarRender={() => [
+            <Select
+              key="status"
+              allowClear
+              placeholder="全部状态"
+              style={{ width: 130 }}
+              options={statusOptions}
+              value={status}
+              onChange={setStatus}
+            />,
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setOpen(true)}
+            >
+              新建入职人员
+            </Button>,
+          ]}
+        />
+      </div>
+      <div className={styles.mobileList}>
+        {rows.length ? (
+          rows.map((row) => (
+            <Card className={styles.mobileCard} key={row.id}>
+              <div className={styles.cardTitleRow}>
+                <div>
+                  <div className={styles.cardTitle}>{row.candidateName}</div>
+                  <div className={styles.cardSubtitle}>
+                    {row.departmentName || '未分配部门'} /{' '}
+                    {row.positionName || '未分配岗位'}
+                  </div>
+                </div>
+                <Tag
+                  color={
+                    row.status === 'SUBMITTED'
+                      ? 'success'
+                      : row.status === 'PENDING'
+                      ? 'processing'
+                      : 'default'
+                  }
+                >
+                  {statusLabel[row.status] || '未知状态'}
+                </Tag>
+              </div>
+              <div className={styles.metricRow}>
+                <div className={styles.metric}>
+                  <span className={styles.metricLabel}>账号状态</span>
+                  {row.status === 'SUBMITTED' ? '已开通' : '未开通'}
+                </div>
+                <div className={styles.metric}>
+                  <span className={styles.metricLabel}>提交时间</span>
+                  {row.submittedAt || '-'}
+                </div>
+              </div>
+              <div className={styles.cardSubtitle}>
+                截止时间：{row.expiresAt || '-'}
+              </div>
+              <div className={styles.cardActions}>
                 {row.status === 'PENDING' && (
-                  <Typography.Text type="secondary">
-                    请在截止时间前提交
-                  </Typography.Text>
-                )}
-              </Space>
-            ),
-          },
-          {
-            title: '操作',
-            valueType: 'option',
-            render: (_, row) => (
-              <Space size="small">
-                {row.status === 'PENDING' && (
-                  <Button
-                    type="link"
-                    icon={<CopyOutlined />}
-                    onClick={() => void copyCurrent(row)}
-                  >
+                  <Button onClick={() => void copyCurrent(row)}>
                     复制链接
                   </Button>
                 )}
                 {row.status !== 'SUBMITTED' && (
                   <Button
-                    type="link"
-                    icon={<ReloadOutlined />}
                     onClick={() => {
                       setRegenerateDays(7);
                       setRegenerateRow(row);
@@ -253,12 +361,7 @@ export default function EmployeePage() {
                   </Button>
                 )}
                 {row.status === 'PENDING' && (
-                  <Button
-                    type="link"
-                    danger
-                    icon={<StopOutlined />}
-                    onClick={() => revoke(row)}
-                  >
+                  <Button danger onClick={() => revoke(row)}>
                     撤销
                   </Button>
                 )}
@@ -266,8 +369,7 @@ export default function EmployeePage() {
                   row.profileStatus === 'CREATED' &&
                   row.profileId && (
                     <Button
-                      type="link"
-                      icon={<EyeOutlined />}
+                      type="primary"
                       onClick={async () =>
                         setProfile(
                           (await getEmployeeProfile(row.profileId!)).data,
@@ -277,31 +379,16 @@ export default function EmployeePage() {
                       查看档案
                     </Button>
                   )}
-              </Space>
-            ),
-          },
-        ]}
-        toolBarRender={() => [
-          <Select
-            key="status"
-            allowClear
-            placeholder="全部状态"
-            style={{ width: 130 }}
-            options={statusOptions}
-            value={status}
-            onChange={setStatus}
-          />,
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setOpen(true)}
-          >
-            新建入职人员
-          </Button>,
-        ]}
-      />
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Empty description="暂无人员档案" />
+        )}
+      </div>
       <Modal
+        className={styles.fullScreenModal}
+        width={560}
         open={open}
         title="新建入职人员"
         onCancel={() => setOpen(false)}
@@ -379,6 +466,8 @@ export default function EmployeePage() {
         </Form>
       </Modal>
       <Modal
+        className={styles.fullScreenModal}
+        width={560}
         open={Boolean(link)}
         title="入职表单链接"
         onCancel={() => {
@@ -405,6 +494,8 @@ export default function EmployeePage() {
         </Button>
       </Modal>
       <Modal
+        className={styles.fullScreenModal}
+        width={520}
         open={Boolean(regenerateRow)}
         title="重新生成入职链接"
         onCancel={() => setRegenerateRow(undefined)}
@@ -435,6 +526,7 @@ export default function EmployeePage() {
         </Form>
       </Modal>
       <Modal
+        className={styles.fullScreenModal}
         open={Boolean(profile)}
         title="人员档案"
         width={900}
@@ -459,7 +551,7 @@ export default function EmployeePage() {
         }
       >
         {profile && (
-          <Descriptions bordered column={2}>
+          <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }}>
             <Descriptions.Item label="姓名">
               <CopyValue value={profile.candidateName} label="姓名" />
             </Descriptions.Item>
@@ -544,6 +636,7 @@ export default function EmployeePage() {
         )}
       </Modal>
       <Modal
+        className={styles.fullScreenModal}
         open={Boolean(editingProfile)}
         title="编辑人员档案"
         width={800}

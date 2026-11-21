@@ -24,6 +24,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import styles from '../crmPlanMobile.less';
 
 /** 每日计划新增、查看和编辑的独立页面。 */
 export default function CrmPlanEditPage() {
@@ -38,7 +39,12 @@ export default function CrmPlanEditPage() {
   const [plan, setPlan] = useState<any>();
   const [items, setItems] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
-  const readOnly = viewOnly || Boolean(plan?.planDate && dayjs(String(plan.planDate).slice(0, 10)).isBefore(dayjs(), 'day'));
+  const readOnly =
+    viewOnly ||
+    Boolean(
+      plan?.planDate &&
+        dayjs(String(plan.planDate).slice(0, 10)).isBefore(dayjs(), 'day'),
+    );
 
   useEffect(() => {
     let mounted = true;
@@ -53,7 +59,11 @@ export default function CrmPlanEditPage() {
           const draftResponse = await getDailyPlanDraft();
           if (!mounted) return;
           const draftItems = draftResponse.data || [];
-          setItems(draftItems.length ? draftItems : [{ contentHtml: '', customerId: null }]);
+          setItems(
+            draftItems.length
+              ? draftItems
+              : [{ contentHtml: '', customerId: null }],
+          );
         } else {
           const response = await getDailyPlan(Number(id));
           if (!mounted) return;
@@ -102,7 +112,11 @@ export default function CrmPlanEditPage() {
     }
   };
 
-  const updateCompletion = async (item: any, index: number, completed: boolean) => {
+  const updateCompletion = async (
+    item: any,
+    index: number,
+    completed: boolean,
+  ) => {
     try {
       await completeDailyPlanItem(item.id, completed);
       change(index, 'isCompleted', completed);
@@ -119,13 +133,20 @@ export default function CrmPlanEditPage() {
       okType: 'danger',
       cancelText: '取消',
       onOk: () =>
-        setItems((current) => current.filter((_, itemIndex) => itemIndex !== index)),
+        setItems((current) =>
+          current.filter((_, itemIndex) => itemIndex !== index),
+        ),
     });
 
-  const title = readOnly ? '查看每日计划' : isNew ? '新增每日计划' : '编辑每日计划';
-  const ownerName = plan?.ownerName || initialState?.currentUser?.name || '当前登录用户';
+  const title = readOnly
+    ? '查看每日计划'
+    : isNew
+    ? '新增每日计划'
+    : '编辑每日计划';
+  const ownerName =
+    plan?.ownerName || initialState?.currentUser?.name || '当前登录用户';
   const actions = (
-    <Space>
+    <Space className={styles.pageActions}>
       <Button onClick={() => history.push(listUrl)}>返回列表</Button>
       {!readOnly && (
         <Button type="primary" loading={saving} onClick={() => void save()}>
@@ -137,6 +158,7 @@ export default function CrmPlanEditPage() {
 
   return (
     <PageContainer
+      className={`${styles.page} ${styles.editorPage}`}
       title={title}
       content="计划日期和归属由系统自动确定；新增时会带出最近一条未完成每日计划的内容。"
       extra={actions}
@@ -145,7 +167,7 @@ export default function CrmPlanEditPage() {
         {!loading && (
           <div style={{ maxWidth: 1000, margin: '0 auto' }}>
             <Card size="small" style={{ marginBottom: 20 }}>
-              <Space size={32} wrap>
+              <Space className={styles.summaryRow} size={32} wrap>
                 <Space>
                   <Typography.Text type="secondary">日期</Typography.Text>
                   <Typography.Text>
@@ -229,7 +251,9 @@ export default function CrmPlanEditPage() {
                       maxLength={1000}
                       disabled={readOnly}
                       value={item.remark || ''}
-                      onChange={(event) => change(index, 'remark', event.target.value)}
+                      onChange={(event) =>
+                        change(index, 'remark', event.target.value)
+                      }
                       placeholder="填写该计划项的补充说明（选填）"
                     />
                   </Form.Item>
@@ -254,7 +278,6 @@ export default function CrmPlanEditPage() {
                     )}
                   </Space>
                 )}
-
               </Card>
             ))}
 
@@ -271,14 +294,20 @@ export default function CrmPlanEditPage() {
                 >
                   新增计划项
                 </Button>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  {actions}
-                </div>
+                <div className={styles.desktopBottomActions}>{actions}</div>
               </Space>
             )}
           </div>
         )}
       </Spin>
+      {!readOnly && (
+        <div className={styles.mobileSaveBar}>
+          <Button onClick={() => history.push(listUrl)}>返回列表</Button>
+          <Button type="primary" loading={saving} onClick={() => void save()}>
+            保存计划
+          </Button>
+        </div>
+      )}
     </PageContainer>
   );
 }

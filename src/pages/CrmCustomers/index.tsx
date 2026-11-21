@@ -35,6 +35,15 @@ import {
 } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { useEffect, useState } from 'react';
+import styles from '../crmPlanMobile.less';
+
+const followupMethodLabels: Record<string, string> = {
+  VISIT: '拜访',
+  PHONE: '历史记录·电话',
+  WECHAT: '历史记录·微信',
+  ONLINE: '线上',
+  OTHER: '其他',
+};
 
 /** 客户档案主视图：客户详情、编辑和跟踪记录均使用独立页面。 */
 export default function CrmCustomersPage() {
@@ -79,6 +88,7 @@ export default function CrmCustomersPage() {
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [viewOnly, setViewOnly] = useState(false);
   const [followFiles, setFollowFiles] = useState<UploadFile[]>([]);
+  const [tableRows, setTableRows] = useState<any[]>([]);
   useEffect(() => {
     Promise.all([listCrmCategories(), listCrmEligibleUsers()])
       .then(([categoryResponse, userResponse]) => {
@@ -192,148 +202,233 @@ export default function CrmCustomersPage() {
   };
   return (
     <PageContainer
+      className={styles.page}
       title="客户管理"
       content="按岗位权限查看和维护本公司客户；客户跟进按时间倒序记录在客户档案中。"
     >
-      <ProTable<any>
-        rowKey="id"
-        key={reload}
-        search={{ labelWidth: 'auto', defaultCollapsed: false }}
-        request={async (params) => {
-          const r = await listCrmCustomers({
-            keyword: params.customerName,
-            phone: params.phone,
-            ownerUserId: canViewTeam ? params.ownerUserId : undefined,
-            categoryId: params.categoryId,
-            favorite: params.favorite,
-          });
-          return {
-            data: r.data || [],
-            success: true,
-            total: (r.data || []).length,
-          };
-        }}
-        toolBarRender={() => [
-          ...(canManageCategories
-            ? [
-                <Button
-                  key="categories"
-                  onClick={() => setCategoryManagerOpen(true)}
-                >
-                  管理分类
-                </Button>,
-              ]
-            : []),
-          <Button
-            key="add"
-            type="primary"
-            onClick={() => history.push('/crm/customers/new')}
-          >
-            新增客户
-          </Button>,
-        ]}
-        columns={[
-          { title: '客户编号', dataIndex: 'customerNo', search: false },
-          {
-            title: '客户名称',
-            dataIndex: 'customerName',
-            render: (_, r) => (
-              <a onClick={() => history.push(`/crm/customers/${r.id}`)}>
-                {Boolean(r.isFavorite) ? (
-                  <StarFilled style={{ color: '#faad14', marginRight: 6 }} />
-                ) : null}
-                {r.customerName}
-              </a>
-            ),
-          },
-          { title: '联系电话', dataIndex: 'phone', search: true },
-          {
-            title: '负责人',
-            dataIndex: 'ownerUserId',
-            hideInSearch: !canViewTeam,
-            valueType: canViewTeam ? 'select' : 'text',
-            fieldProps: canViewTeam
-              ? {
-                  options: eligibleUsers.map((u: any) => ({
-                    label: u.name,
-                    value: u.id,
-                  })),
-                }
-              : undefined,
-            render: (_, r) => (
-              <span>
-                {r.ownerName || '未知用户'}
-                {r.ownerStatus === 'DEPARTED' && (
-                  <Tag color="error" bordered={false} style={{ marginLeft: 4 }}>
-                    已离职
-                  </Tag>
-                )}
-              </span>
-            ),
-          },
-          {
-            title: '分类',
-            dataIndex: 'categoryId',
-            valueType: 'select',
-            fieldProps: { options: flattenCategoryOptions(categories) },
-            render: (_, r) => r.categoryPath || '未分类',
-          },
-          {
-            title: '是否收藏',
-            dataIndex: 'favorite',
-            hideInTable: true,
-            valueType: 'select',
-            fieldProps: {
-              options: [
-                { label: '已收藏', value: true },
-                { label: '未收藏', value: false },
-              ],
-            },
-          },
-          {
-            title: '合同数',
-            dataIndex: 'contractCount',
-            search: false,
-            render: () => 0,
-          },
-          {
-            title: '操作',
-            valueType: 'option',
-            search: false,
-            render: (_, r) => (
-              <Space size="middle">
-                {canCreateSalesOrder &&
-                  Number(r.ownerUserId) === currentUserId && (
-                    <a
-                      onClick={() =>
-                        history.push(`/crm/sales-orders/new?customerId=${r.id}`)
-                      }
-                    >
-                      新增订单
-                    </a>
-                  )}
+      <div
+        className={`${styles.responsiveTable} ${styles.customerResponsiveTable}`}
+      >
+        <ProTable<any>
+          rowKey="id"
+          key={reload}
+          search={{ labelWidth: 'auto', defaultCollapsed: true }}
+          request={async (params) => {
+            const r = await listCrmCustomers({
+              keyword: params.customerName,
+              phone: params.phone,
+              ownerUserId: canViewTeam ? params.ownerUserId : undefined,
+              categoryId: params.categoryId,
+              favorite: params.favorite,
+            });
+            return {
+              data: r.data || [],
+              success: true,
+              total: (r.data || []).length,
+            };
+          }}
+          onLoad={(rows) => setTableRows(rows || [])}
+          toolBarRender={() => [
+            ...(canManageCategories
+              ? [
+                  <Button
+                    key="categories"
+                    onClick={() => setCategoryManagerOpen(true)}
+                  >
+                    管理分类
+                  </Button>,
+                ]
+              : []),
+            <Button
+              key="add"
+              type="primary"
+              onClick={() => history.push('/crm/customers/new')}
+            >
+              新增客户
+            </Button>,
+          ]}
+          columns={[
+            { title: '客户编号', dataIndex: 'customerNo', search: false },
+            {
+              title: '客户名称',
+              dataIndex: 'customerName',
+              fieldProps: { placeholder: '搜索客户名称' },
+              render: (_, r) => (
                 <a onClick={() => history.push(`/crm/customers/${r.id}`)}>
+                  {Boolean(r.isFavorite) ? (
+                    <StarFilled style={{ color: '#faad14', marginRight: 6 }} />
+                  ) : null}
+                  {r.customerName}
+                </a>
+              ),
+            },
+            { title: '联系电话', dataIndex: 'phone', search: true },
+            {
+              title: '负责人',
+              dataIndex: 'ownerUserId',
+              hideInSearch: !canViewTeam,
+              valueType: canViewTeam ? 'select' : 'text',
+              fieldProps: canViewTeam
+                ? {
+                    options: eligibleUsers.map((u: any) => ({
+                      label: u.name,
+                      value: u.id,
+                    })),
+                  }
+                : undefined,
+              render: (_, r) => (
+                <span>
+                  {r.ownerName || '未知用户'}
+                  {r.ownerStatus === 'DEPARTED' && (
+                    <Tag
+                      color="error"
+                      bordered={false}
+                      style={{ marginLeft: 4 }}
+                    >
+                      已离职
+                    </Tag>
+                  )}
+                </span>
+              ),
+            },
+            {
+              title: '分类',
+              dataIndex: 'categoryId',
+              valueType: 'select',
+              fieldProps: { options: flattenCategoryOptions(categories) },
+              render: (_, r) => r.categoryPath || '未分类',
+            },
+            {
+              title: '是否收藏',
+              dataIndex: 'favorite',
+              hideInTable: true,
+              valueType: 'select',
+              fieldProps: {
+                options: [
+                  { label: '已收藏', value: true },
+                  { label: '未收藏', value: false },
+                ],
+              },
+            },
+            {
+              title: '合同数',
+              dataIndex: 'contractCount',
+              search: false,
+              render: () => 0,
+            },
+            {
+              title: '操作',
+              valueType: 'option',
+              search: false,
+              render: (_, r) => (
+                <Space size="middle">
+                  {canCreateSalesOrder &&
+                    Number(r.ownerUserId) === currentUserId && (
+                      <a
+                        onClick={() =>
+                          history.push(
+                            `/crm/sales-orders/new?customerId=${r.id}`,
+                          )
+                        }
+                      >
+                        新增订单
+                      </a>
+                    )}
+                  <a onClick={() => history.push(`/crm/customers/${r.id}`)}>
+                    查看详情
+                  </a>
+                  <a
+                    onClick={() => history.push(`/crm/customers/${r.id}/edit`)}
+                  >
+                    编辑
+                  </a>
+                  <a
+                    onClick={() =>
+                      history.push(`/crm/customers/${r.id}/followups`)
+                    }
+                  >
+                    跟踪记录
+                  </a>
+                  <a onClick={() => void toggleFavorite(r)}>
+                    {r.isFavorite ? '取消收藏' : '收藏'}
+                  </a>
+                </Space>
+              ),
+            },
+          ]}
+        />
+      </div>
+      <div className={styles.mobileList}>
+        {tableRows.length ? (
+          tableRows.map((customer) => (
+            <Card className={styles.planCard} key={customer.id}>
+              <div className={styles.cardHeader}>
+                <div>
+                  <div className={styles.cardTitle}>
+                    {customer.isFavorite && (
+                      <StarFilled
+                        style={{ color: '#faad14', marginRight: 6 }}
+                      />
+                    )}
+                    {customer.customerName || '未命名客户'}
+                  </div>
+                  <div className={styles.cardMeta}>
+                    {customer.customerNo || '暂无客户编号'}
+                  </div>
+                </div>
+                <Tag color="blue">{customer.categoryPath || '未分类'}</Tag>
+              </div>
+              <div className={styles.metrics}>
+                <div>
+                  <span className={styles.metricLabel}>联系电话</span>
+                  <span className={styles.metricValue}>
+                    {customer.phone || '—'}
+                  </span>
+                </div>
+                <div>
+                  <span className={styles.metricLabel}>负责人</span>
+                  <span className={styles.metricValue}>
+                    {customer.ownerName || '未知用户'}
+                  </span>
+                </div>
+                <div>
+                  <span className={styles.metricLabel}>合同数</span>
+                  <span className={styles.metricValue}>0</span>
+                </div>
+              </div>
+              <div className={styles.cardActions}>
+                <Button
+                  type="primary"
+                  onClick={() => history.push(`/crm/customers/${customer.id}`)}
+                >
                   查看详情
-                </a>
-                <a onClick={() => history.push(`/crm/customers/${r.id}/edit`)}>
-                  编辑
-                </a>
-                <a
+                </Button>
+                <Button
                   onClick={() =>
-                    history.push(`/crm/customers/${r.id}/followups`)
+                    history.push(`/crm/customers/${customer.id}/followups`)
                   }
                 >
                   跟踪记录
-                </a>
-                <a onClick={() => void toggleFavorite(r)}>
-                  {r.isFavorite ? '取消收藏' : '收藏'}
-                </a>
-              </Space>
-            ),
-          },
-        ]}
-      />
+                </Button>
+                <Button
+                  onClick={() =>
+                    history.push(`/crm/customers/${customer.id}/edit`)
+                  }
+                >
+                  编辑
+                </Button>
+                <Button onClick={() => void toggleFavorite(customer)}>
+                  {customer.isFavorite ? '取消收藏' : '收藏'}
+                </Button>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Empty description="暂无客户" />
+        )}
+      </div>
       <Drawer
+        rootClassName={styles.responsiveDrawer}
         title={
           selected
             ? viewOnly
@@ -489,13 +584,7 @@ export default function CrmCustomersPage() {
                           {f.creatorName || '未知用户'}
                         </Typography.Text>
                         <Tag color="blue">
-                          {{
-                            VISIT: '拜访',
-                            PHONE: '历史记录·电话',
-                            WECHAT: '历史记录·微信',
-                            ONLINE: '线上',
-                            OTHER: '其他',
-                          }[f.method] || f.method}
+                          {followupMethodLabels[String(f.method)] || f.method}
                         </Tag>
                       </Space>
                     }
@@ -637,6 +726,7 @@ export default function CrmCustomersPage() {
         )}
       </Drawer>
       <Modal
+        className={styles.responsiveModal}
         title="客户分类管理"
         open={categoryManagerOpen}
         onCancel={() => setCategoryManagerOpen(false)}
@@ -696,7 +786,7 @@ function buildCategoryTree(categories: any[]): any[] {
     if (parent) parent.children.push(node);
     else roots.push(node);
   });
-  const prune = (list: any[]) =>
+  const prune = (list: any[]): any[] =>
     list.map((node) => ({
       ...node,
       children: node.children.length ? prune(node.children) : undefined,

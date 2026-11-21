@@ -17,6 +17,8 @@ import { useModel } from '@umijs/max';
 import {
   Alert,
   Button,
+  Card,
+  Empty,
   Form,
   Input,
   message,
@@ -27,6 +29,7 @@ import {
   Tag,
 } from 'antd';
 import { useEffect, useState } from 'react';
+import styles from '../systemMobile.less';
 
 export default function UserPage() {
   const { initialState } = useModel('@@initialState');
@@ -191,6 +194,7 @@ export default function UserPage() {
 
   return (
     <PageContainer
+      className={styles.page}
       title="用户管理"
       content="管理各公司用户、管理员身份和岗位。密码仅保存 BCrypt 哈希，重置后旧会话立即失效。"
       extra={
@@ -210,30 +214,121 @@ export default function UserPage() {
         ) : null
       }
     >
-      <ProTable
-        rowKey="id"
-        search={false}
-        dataSource={users}
-        columns={columns}
-        pagination={false}
-        toolBarRender={() => [
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditing(undefined);
-              form.resetFields();
-              form.setFieldsValue({ status: 'ENABLED', companyAdmin: false });
-              setOpen(true);
-            }}
-          >
-            新建用户
-          </Button>,
-        ]}
-      />
+      <div className={styles.responsiveTable}>
+        <ProTable
+          rowKey="id"
+          search={false}
+          dataSource={users}
+          columns={columns}
+          pagination={false}
+          toolBarRender={() => [
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditing(undefined);
+                form.resetFields();
+                form.setFieldsValue({
+                  status: 'ENABLED',
+                  companyAdmin: false,
+                });
+                setOpen(true);
+              }}
+            >
+              新建用户
+            </Button>,
+          ]}
+        />
+      </div>
+      <div className={styles.mobileList}>
+        {users.length ? (
+          users.map((user) => (
+            <Card className={styles.mobileCard} key={user.id}>
+              <div className={styles.cardTitleRow}>
+                <div>
+                  <div className={styles.cardTitle}>{user.displayName}</div>
+                  <div className={styles.cardSubtitle}>{user.username}</div>
+                </div>
+                <Tag color={user.status === 'ENABLED' ? 'success' : 'default'}>
+                  {user.status === 'ENABLED' ? '启用' : '停用'}
+                </Tag>
+              </div>
+              <div className={styles.metricRow}>
+                <div className={styles.metric}>
+                  <span className={styles.metricLabel}>岗位</span>
+                  {user.positionName || '未分配'}
+                </div>
+                <div className={styles.metric}>
+                  <span className={styles.metricLabel}>身份</span>
+                  {user.companyAdmin ? '公司管理员' : '普通用户'}
+                </div>
+              </div>
+              <div className={styles.cardSubtitle}>
+                手机号：{user.phone || '-'}
+              </div>
+              <div className={styles.cardSubtitle}>
+                最后登录：{user.lastLoginAt || '-'}
+              </div>
+              <div className={styles.cardActions}>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setEditing(user);
+                    form.setFieldsValue(user);
+                    setOpen(true);
+                  }}
+                >
+                  编辑
+                </Button>
+                <Button
+                  onClick={async () => {
+                    const response = await getUserPosition(user.id);
+                    positionForm.setFieldsValue({
+                      positionId: response.data?.positionId,
+                    });
+                    setPositionUser(user);
+                    setPositionOpen(true);
+                  }}
+                >
+                  分配岗位
+                </Button>
+                {canDeleteUsers && user.id !== currentUser?.id && (
+                  <Button
+                    danger
+                    onClick={() =>
+                      Modal.confirm({
+                        title: `确认删除用户“${user.displayName}”？`,
+                        content:
+                          '将解除该用户在当前公司的成员和岗位关系；历史业务记录会保留。',
+                        okText: '删除用户',
+                        okType: 'danger',
+                        cancelText: '取消',
+                        onOk: async () => {
+                          await deleteUser(
+                            user.id,
+                            platform ? companyId : undefined,
+                          );
+                          message.success('用户已删除');
+                          await reload();
+                        },
+                      })
+                    }
+                  >
+                    删除
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Empty description="暂无用户" />
+        )}
+      </div>
 
       <Modal
+        className={styles.fullScreenModal}
+        width={560}
         title={editing ? '编辑用户' : '新建用户'}
         open={open}
         onCancel={() => setOpen(false)}
@@ -264,7 +359,11 @@ export default function UserPage() {
           >
             <Input maxLength={64} />
           </Form.Item>
-          <Space size={16} style={{ display: 'flex' }}>
+          <Space
+            className={styles.stackedFormRow}
+            size={16}
+            style={{ display: 'flex' }}
+          >
             <Form.Item
               name="phone"
               label="手机号"
@@ -340,6 +439,8 @@ export default function UserPage() {
       </Modal>
 
       <Modal
+        className={styles.fullScreenModal}
+        width={520}
         title={
           <Space>
             <TeamOutlined />
@@ -381,6 +482,8 @@ export default function UserPage() {
       </Modal>
 
       <Modal
+        className={styles.fullScreenModal}
+        width={520}
         title={
           <Space>
             <KeyOutlined />
