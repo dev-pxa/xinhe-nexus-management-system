@@ -180,7 +180,52 @@ declare namespace ManagementAPI {
     firstPunchTime?: string;
     lastPunchTime?: string;
     punchCount: number;
-    status: 'NO_RECORD' | 'SINGLE' | 'NORMAL';
+    dayType?: 'WORKDAY' | 'COMPANY_HOLIDAY' | 'PERSONAL_HOLIDAY';
+    status:
+      | 'NO_RECORD'
+      | 'PENDING_SETTLEMENT'
+      | 'ABSENT'
+      | 'SINGLE'
+      | 'NORMAL'
+      | 'RULE_MISSING'
+      | 'COMPANY_HOLIDAY'
+      | 'PERSONAL_HOLIDAY';
+  };
+  type AttendanceRuleConflict = {
+    userId: number;
+    userName: string;
+    dates: string[];
+  };
+  type AttendanceRuleYear = {
+    id?: number;
+    year: number;
+    status: 'UNCONFIGURED' | 'DRAFT' | 'PUBLISHED';
+    companyConfigured: boolean | number;
+    draftRevision: number;
+    publishedRevision?: number;
+    version: number;
+    publishedAt?: string;
+    companyHolidayDates: string[];
+    conflicts: AttendanceRuleConflict[];
+    requiredPersonalHolidayCount: number;
+  };
+  type AttendanceRuleUser = {
+    id: number;
+    name: string;
+    username: string;
+    holidayCount: number;
+    conflictCount: number;
+    requiredPersonalHolidayCount: number;
+  };
+  type AttendanceRuleUserDetail = {
+    year: number;
+    userId: number;
+    companyConfigured: boolean | number;
+    version: number;
+    companyHolidayDates: string[];
+    personalHolidayDates: string[];
+    conflictDates: string[];
+    requiredPersonalHolidayCount: number;
   };
 
   type AttendanceCorrection = {

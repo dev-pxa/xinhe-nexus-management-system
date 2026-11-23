@@ -42,8 +42,13 @@ const statusMap: Record<
   [string, string]
 > = {
   NO_RECORD: ['无记录', 'default'],
+  PENDING_SETTLEMENT: ['待结算', 'processing'],
+  ABSENT: ['缺勤', 'error'],
   SINGLE: ['单次打卡', 'warning'],
   NORMAL: ['正常', 'success'],
+  RULE_MISSING: ['规则未配置', 'error'],
+  COMPANY_HOLIDAY: ['公司休假', 'blue'],
+  PERSONAL_HOLIDAY: ['个人休假', 'green'],
 };
 const baseColumns = [
   { title: '日期', dataIndex: 'punchDate', key: 'punchDate' },
@@ -274,8 +279,8 @@ export default function AllAttendancePage() {
   return (
     <PageContainer
       className={styles.page}
-      title="全部打卡记录"
-      content="管理员可查看本公司人员记录，并为指定人员补录打卡"
+      title="全部考勤"
+      content="打卡、补录或补卡审批后立即更新；每日凌晨 1 点补齐前一天零打卡记录并修复异常汇总"
     >
       <Card className={styles.filterCard}>
         <div className={styles.filterBar}>

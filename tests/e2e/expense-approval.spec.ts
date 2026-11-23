@@ -97,7 +97,7 @@ test('待审批列表只提供去审核，详情支持附件预览和必填驳�
   );
 
   await page.goto('/oa/approval/expense-review');
-  await expect(page.getByText('张三', { exact: true })).toBeVisible();
+  await expect(page.getByText('张三', { exact: true }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: '去审核' })).toBeVisible();
   await expect(page.getByRole('button', { name: '通过' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '驳回' })).toHaveCount(0);
@@ -206,7 +206,7 @@ test('只有直属负责人未处理的报销单显示撤回入口', async ({ pa
   await page.goto('/oa/expense');
   await expect(page.getByRole('button', { name: '撤回' })).toHaveCount(1);
   await expect(
-    page.getByText('待直属负责人审批', { exact: true }),
+    page.getByText('待直属负责人审批', { exact: true }).first(),
   ).toBeVisible();
-  await expect(page.getByText('待最终审批', { exact: true })).toBeVisible();
+  await expect(page.getByText('待最终审批', { exact: true }).first()).toBeVisible();
 });

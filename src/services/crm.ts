@@ -35,6 +35,8 @@ export const getCrmCustomer = (id: number) =>
   request<any>(`${base}/customers/${id}`, tenantOptions());
 export const listCrmEligibleUsers = () =>
   request<any>(`${base}/eligible-users`, tenantOptions());
+export const listCrmEligiblePlanUsers = () =>
+  request<any>(`${base}/plan-eligible-users`, tenantOptions());
 export const listMyCrmCustomers = () =>
   request<any>(`${base}/customers/mine`, tenantOptions());
 export const listCustomerSalesOrders = (customerId: number) =>
@@ -120,10 +122,23 @@ export const downloadCrmAttachment = (id: number) =>
     ...tenantOptions(),
     responseType: 'blob',
   });
-export const listDailyPlans = (year: number, month: number, params: Record<string, any> = {}) => {
-  const query = new URLSearchParams({ year: String(year), month: String(month) });
-  Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== '') query.set(key, String(value)); });
-  return request<any>(`${base}/daily-plans?${query.toString()}`, tenantOptions());
+export const listDailyPlans = (
+  year: number,
+  month: number,
+  params: Record<string, any> = {},
+) => {
+  const query = new URLSearchParams({
+    year: String(year),
+    month: String(month),
+  });
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '')
+      query.set(key, String(value));
+  });
+  return request<any>(
+    `${base}/daily-plans?${query.toString()}`,
+    tenantOptions(),
+  );
 };
 export const getDailyPlan = (id: number) =>
   request<any>(`${base}/daily-plans/${id}`, tenantOptions());
@@ -152,10 +167,23 @@ export const completeDailyPlanItem = (id: number, completed: boolean) =>
     method: 'PUT',
     data: { completed },
   });
-export const listWeeklyPlans = (year: number, month: number, params: Record<string, any> = {}) => {
-  const query = new URLSearchParams({ year: String(year), month: String(month) });
-  Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== '') query.set(key, String(value)); });
-  return request<any>(`${base}/weekly-plans?${query.toString()}`, tenantOptions());
+export const listWeeklyPlans = (
+  year: number,
+  month: number,
+  params: Record<string, any> = {},
+) => {
+  const query = new URLSearchParams({
+    year: String(year),
+    month: String(month),
+  });
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '')
+      query.set(key, String(value));
+  });
+  return request<any>(
+    `${base}/weekly-plans?${query.toString()}`,
+    tenantOptions(),
+  );
 };
 export const getWeeklyPlan = (id: number) =>
   request<any>(`${base}/weekly-plans/${id}`, tenantOptions());

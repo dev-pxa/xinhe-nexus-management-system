@@ -71,6 +71,7 @@ export default function PersonalProfile({ trigger }: { trigger: ReactNode }) {
         {trigger}
       </span>
       <Modal
+        className="personal-profile-modal"
         title="个人信息"
         open={profileOpen}
         confirmLoading={saving}
@@ -80,7 +81,7 @@ export default function PersonalProfile({ trigger }: { trigger: ReactNode }) {
         cancelText="取消"
         loading={loading}
         footer={(_, { OkBtn, CancelBtn }) => (
-          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+          <div className="personal-profile-modal-footer">
             {canViewPersonalProfile && (
               <Button onClick={() => history.push('/oa/profile')}>
                 查看个人档案
@@ -95,11 +96,11 @@ export default function PersonalProfile({ trigger }: { trigger: ReactNode }) {
             >
               更改密码
             </Button>
-            <Space>
+            <Space className="personal-profile-modal-confirm">
               <CancelBtn />
               <OkBtn />
             </Space>
-          </Space>
+          </div>
         )}
       >
         <Form form={profileForm} layout="vertical">

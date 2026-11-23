@@ -8,6 +8,7 @@
     "build": "max build",
     "dev": "max dev --port 18082",
     "format": "prettier --cache --write .",
+    "manual:screenshots": "node scripts/capture-manual-dom-screenshots.mjs",
     "postinstall": "max setup",
     "setup": "max setup",
     "start": "npm run dev",

@@ -50,3 +50,48 @@ body {
 .ant-pro-sider-collapsed .manual-sider-link span {
   display: none;
 }
+
+.personal-profile-modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 575px) {
+  .personal-profile-modal {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px);
+    margin: 12px auto;
+    padding-bottom: 0;
+  }
+
+  .personal-profile-modal .ant-modal-content {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+
+  .personal-profile-modal .ant-modal-body {
+    padding: 16px;
+  }
+
+  .personal-profile-modal-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .personal-profile-modal-footer > .ant-btn,
+  .personal-profile-modal-confirm,
+  .personal-profile-modal-confirm .ant-space-item,
+  .personal-profile-modal-confirm .ant-btn {
+    width: 100%;
+  }
+
+  .personal-profile-modal-confirm {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+  }
+}

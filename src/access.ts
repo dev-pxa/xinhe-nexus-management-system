@@ -41,6 +41,9 @@ export default function access(
     canAllAttendance:
       companyUser &&
       (companyAdmin || permissions.includes('oa:attendance:all:view')),
+    canManageAttendanceRules:
+      Boolean(initialState?.currentUser?.companyId) &&
+      roles.includes('COMPANY_ADMIN'),
     canAttendanceCorrectionReview:
       companyUser &&
       (companyAdmin ||

@@ -1,5 +1,7 @@
 import {
+  listAllAttendance,
   listAttendancePunches,
+  listMyAttendance,
   listMyAttendancePunches,
 } from '@/services/management';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -27,18 +29,47 @@ export default function AttendanceDetailPage() {
   const companyId = Number(query.get('companyId')) || undefined;
   const displayName = query.get('name');
   const [data, setData] = useState<ManagementAPI.AttendancePunch[]>([]);
+  const [summary, setSummary] = useState<ManagementAPI.AttendanceSummary>();
   const [loading, setLoading] = useState(false);
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    const request = userId
+    setData([]);
+    setSummary(undefined);
+    const punchesRequest = userId
       ? listAttendancePunches({ date, userId: Number(userId), companyId })
       : listMyAttendancePunches(date);
-    void request
-      .then((response) => {
+    const summaryRequest = userId
+      ? listAllAttendance({
+          from: date,
+          to: date,
+          userId: Number(userId),
+          companyId,
+          page: 1,
+          pageSize: 1,
+        }).then((response) => response.data?.data?.[0])
+      : listMyAttendance(date, date).then((response) => response.data?.[0]);
+    void Promise.all([punchesRequest, summaryRequest])
+      .then(([response, nextSummary]) => {
+        if (cancelled) return;
         if (response.code === 0) setData(response.data || []);
+        setSummary(nextSummary);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [companyId, date, userId]);
+  const emptyText =
+    summary?.status === 'COMPANY_HOLIDAY'
+      ? '当天为公司休假，无需打卡'
+      : summary?.status === 'PERSONAL_HOLIDAY'
+        ? '当天为个人休假，无需打卡'
+        : summary?.status === 'RULE_MISSING'
+          ? '当天考勤规则尚未配置'
+          : '当天暂无打卡明细';
   return (
     <PageContainer
       className={styles.page}
@@ -49,7 +80,7 @@ export default function AttendanceDetailPage() {
             history.push(userId ? '/oa/all-attendance' : '/oa/attendance')
           }
         >
-          返回打卡记录
+          返回考勤
         </Button>
       }
     >
@@ -61,7 +92,7 @@ export default function AttendanceDetailPage() {
           loading={loading}
           dataSource={data}
           pagination={false}
-          locale={{ emptyText: <Empty description="当天暂无打卡明细" /> }}
+          locale={{ emptyText: <Empty description={emptyText} /> }}
           columns={[
             {
               title: '打卡时间',
@@ -150,7 +181,7 @@ export default function AttendanceDetailPage() {
             </div>
           ) : (
             <div className={styles.emptyCard}>
-              <Empty description="当天暂无打卡明细" />
+              <Empty description={emptyText} />
             </div>
           )}
         </Spin>

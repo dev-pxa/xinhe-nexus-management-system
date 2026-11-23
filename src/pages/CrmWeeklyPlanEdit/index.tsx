@@ -3,6 +3,7 @@ import {
   createWeeklyPlan,
   getWeeklyPlan,
   getWeeklyPlanDraft,
+  listCrmEligiblePlanUsers,
   listMyCrmCustomers,
   updateWeeklyPlan,
 } from '@/services/crm';
@@ -39,6 +40,7 @@ export default function CrmWeeklyPlanEditPage() {
   const [plan, setPlan] = useState<any>();
   const [items, setItems] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [eligibleUsers, setEligibleUsers] = useState<any[]>([]);
   const readOnly =
     viewOnly ||
     Boolean(
@@ -51,9 +53,13 @@ export default function CrmWeeklyPlanEditPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const customerResponse = await listMyCrmCustomers();
+        const [customerResponse, usersResponse] = await Promise.all([
+          listMyCrmCustomers(),
+          listCrmEligiblePlanUsers(),
+        ]);
         if (!mounted) return;
         setCustomers(customerResponse.data || []);
+        setEligibleUsers(usersResponse.data || []);
         if (isNew) {
           setPlan(undefined);
           const draftResponse = await getWeeklyPlanDraft();
@@ -93,12 +99,15 @@ export default function CrmWeeklyPlanEditPage() {
     setSaving(true);
     try {
       const body = {
-        items: items.map((item) => ({
-          id: item.id,
-          contentHtml: item.contentHtml,
-          customerId: item.customerId || null,
-          remark: item.remark || null,
-        })),
+        items: items
+          .filter((item) => item.editable !== false)
+          .map((item) => ({
+            id: item.id,
+            contentHtml: item.contentHtml,
+            customerId: item.customerId || null,
+            collaboratorUserId: item.collaboratorUserId || null,
+            remark: item.remark || null,
+          })),
       };
       if (isNew) await createWeeklyPlan(body);
       else await updateWeeklyPlan(Number(id), body);
@@ -197,7 +206,8 @@ export default function CrmWeeklyPlanEditPage() {
                 key={item.id || `new-${index}`}
                 title={`计划项 ${index + 1}`}
                 extra={
-                  !readOnly && (
+                  !readOnly &&
+                  item.editable !== false && (
                     <Button
                       type="link"
                       danger
@@ -212,12 +222,19 @@ export default function CrmWeeklyPlanEditPage() {
                 size="small"
                 style={{ marginBottom: 16 }}
               >
+                {item.editable === false && (
+                  <Tag color="blue" style={{ marginBottom: 12 }}>
+                    {item.sourceOwnerName
+                      ? `由 ${item.sourceOwnerName} 添加·只读`
+                      : '协作计划项·只读'}
+                  </Tag>
+                )}
                 <Form layout="vertical">
                   <Form.Item label="计划内容" required>
                     <Input.TextArea
                       rows={5}
                       autoSize={{ minRows: 5, maxRows: 14 }}
-                      disabled={readOnly}
+                      disabled={readOnly || item.editable === false}
                       value={htmlToPlainText(item.contentHtml || '')}
                       onChange={(event) =>
                         change(
@@ -231,7 +248,7 @@ export default function CrmWeeklyPlanEditPage() {
                   </Form.Item>
                   <Form.Item label="关联客户">
                     <Select
-                      disabled={readOnly}
+                      disabled={readOnly || item.editable === false}
                       allowClear
                       showSearch
                       optionFilterProp="label"
@@ -244,11 +261,35 @@ export default function CrmWeeklyPlanEditPage() {
                       placeholder="选择本人负责的客户"
                     />
                   </Form.Item>
+                  <Form.Item label="协作人">
+                    {item.editable === false ? (
+                      <Input
+                        disabled
+                        value={item.collaboratorName || '未指定'}
+                      />
+                    ) : (
+                      <Select
+                        disabled={readOnly}
+                        allowClear
+                        showSearch
+                        optionFilterProp="label"
+                        value={item.collaboratorUserId || undefined}
+                        options={eligibleUsers.map((user) => ({
+                          value: user.id,
+                          label: user.name,
+                        }))}
+                        onChange={(value) =>
+                          change(index, 'collaboratorUserId', value)
+                        }
+                        placeholder="选择有计划管理权限的协作人（选填）"
+                      />
+                    )}
+                  </Form.Item>
                   <Form.Item label="备注">
                     <Input.TextArea
                       rows={2}
                       maxLength={1000}
-                      disabled={readOnly}
+                      disabled={readOnly || item.editable === false}
                       value={item.remark || ''}
                       onChange={(event) =>
                         change(index, 'remark', event.target.value)
@@ -260,7 +301,7 @@ export default function CrmWeeklyPlanEditPage() {
                 {item.id && (
                   <Space>
                     <Typography.Text type="secondary">完成状态</Typography.Text>
-                    {readOnly ? (
+                    {readOnly || item.editable === false ? (
                       <Tag color={item.isCompleted ? 'success' : 'default'}>
                         {item.isCompleted ? '已完成' : '未完成'}
                       </Tag>

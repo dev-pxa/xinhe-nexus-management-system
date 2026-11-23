@@ -50,8 +50,13 @@ const statusMap: Record<
   [string, string]
 > = {
   NO_RECORD: ['无记录', 'default'],
+  PENDING_SETTLEMENT: ['待结算', 'processing'],
+  ABSENT: ['缺勤', 'error'],
   SINGLE: ['单次打卡', 'warning'],
   NORMAL: ['正常', 'success'],
+  RULE_MISSING: ['规则未配置', 'error'],
+  COMPANY_HOLIDAY: ['公司休假', 'blue'],
+  PERSONAL_HOLIDAY: ['个人休假', 'green'],
 };
 const columns = [
   { title: '日期', dataIndex: 'punchDate', key: 'punchDate' },
@@ -184,8 +189,19 @@ export default function AttendancePage() {
         capturedAt: new Date(position.timestamp).toISOString(),
       });
       if (response.code !== 0) throw new Error(response.message);
+      const settled = response.data;
+      if (
+        settled?.punchDate &&
+        settled.punchDate >= range.from &&
+        settled.punchDate <= range.to
+      ) {
+        setRecords((current) =>
+          [settled, ...current.filter((item) => item.punchDate !== settled.punchDate)].sort(
+            (left, right) => right.punchDate.localeCompare(left.punchDate),
+          ),
+        );
+      }
       message.success('打卡成功');
-      await load();
     } catch (error: any) {
       message.error(error?.message || '打卡失败');
     } finally {
@@ -221,8 +237,8 @@ export default function AttendancePage() {
   return (
     <PageContainer
       className={styles.page}
-      title="我的打卡记录"
-      content="记录每日最早和最晚打卡时间"
+      title="我的考勤"
+      content="打卡后立即更新今日记录；每日凌晨 1 点自动补齐前一天未打卡或休假记录"
       extra={
         <Space className={styles.pageActions} size={16}>
           <Button

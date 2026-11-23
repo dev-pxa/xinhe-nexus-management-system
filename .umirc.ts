@@ -229,7 +229,7 @@ export default defineConfig({
       routes: [
         { path: '/oa', redirect: '/oa/attendance' },
         {
-          name: '打卡记录',
+          name: '我的考勤',
           path: '/oa/attendance',
           exact: true,
           component: './Attendance',
@@ -245,10 +245,16 @@ export default defineConfig({
           hideInMenu: true,
         },
         {
-          name: '全部打卡记录',
+          name: '全部考勤',
           path: '/oa/all-attendance',
           component: './AllAttendance',
           access: 'canAllAttendance',
+        },
+        {
+          name: '考勤规则',
+          path: '/oa/attendance-rules',
+          component: './AttendanceRules',
+          access: 'canManageAttendanceRules',
         },
         { name: '我的报销', path: '/oa/expense', component: './ExpenseList' },
         {

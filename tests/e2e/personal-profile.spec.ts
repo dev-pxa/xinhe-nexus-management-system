@@ -92,10 +92,10 @@ test('人员档案审批页可展示申请并通过审批', async ({ page }) => 
   await page.route('**/api/hr/profiles/change-requests/21/decide', async (route) => { decisionBody = JSON.parse(route.request().postData() || '{}'); await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 0, message: 'success', data: { id: 21, status: 'APPROVED' } }) }); });
   await page.goto('/oa/approval/profile-change-requests');
   await expect(page.getByText('人员档案审批', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('张三', { exact: true })).toBeVisible();
+  await expect(page.getByText('张三', { exact: true }).first()).toBeVisible();
   await page.getByRole('button', { name: '去审核' }).click();
-  await expect(page.getByText('修改前', { exact: true })).toBeVisible();
-  await expect(page.getByText('居住地址', { exact: true })).toBeVisible();
+  await expect(page.getByText('修改前', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('居住地址', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('性别', { exact: true })).not.toBeVisible();
   await expect(page.getByText('教育经历', { exact: true })).not.toBeVisible();
   await page.getByTestId('profile-change-approve').click();

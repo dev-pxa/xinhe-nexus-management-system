@@ -1,0 +1,57 @@
+.toolbar { margin-bottom: 16px; }
+.personalTools { margin-bottom: 16px; }
+.personalHint { margin-bottom: 16px; }
+.batchActions { display: flex; gap: 8px; }
+.batchActions > button { flex: 1; }
+.calendarHeader { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 12px 0; }
+.monthSelect { width: 88px; }
+.cell { display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; width: calc(100% - 4px); height: calc(100% - 4px); min-height: 64px; margin: 2px; padding: 7px 4px; border: 1px solid #e4eaf2; border-radius: 9px; background: #fff; color: #344054; text-align: center; cursor: pointer; transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.cell:hover { position: relative; z-index: 1; border-color: #91caff; background: #f5f9ff; box-shadow: 0 3px 10px rgba(22,119,255,.10); transform: translateY(-1px); }
+.dayNumber { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; border-radius: 50%; font-weight: 500; line-height: 1; }
+.cell small { display: block; margin-top: 3px; color: #667085; font-size: 11px; line-height: 16px; }
+.outside { border-color: #f0f2f5; background: #fafbfc; color: #b8c0cc; }
+.outside:hover { border-color: #e4eaf2; background: #fafbfc; box-shadow: none; transform: none; }
+.frozen { border-color: #e5e7eb; background: #f3f4f6; color: #98a2b3; cursor: not-allowed; box-shadow: none; }
+.frozen:hover { border-color: #d0d5dd; background: #eef0f3; box-shadow: none; transform: none; }
+.frozen .dayNumber { background: #e4e7ec; color: #667085; }
+.frozen small { color: #98a2b3; }
+.company { border-color: #91caff; background: linear-gradient(145deg,#f4f9ff 0%,#e6f4ff 100%); color: #0958d9; box-shadow: inset 0 0 0 1px rgba(22,119,255,.08); }
+.company .dayNumber { background: #1677ff; color: #fff; }
+.personal { border-color: #95de64; background: linear-gradient(145deg,#fbfff8 0%,#f0ffe8 100%); color: #237804; box-shadow: inset 0 0 0 1px rgba(82,196,26,.10); }
+.personal .dayNumber { background: #52c41a; color: #fff; }
+.conflict { border-color: #ff9c9c; background: linear-gradient(145deg,#fff8f7 0%,#fff1f0 100%); color: #cf1322; box-shadow: inset 0 0 0 1px rgba(255,77,79,.12); }
+.conflict .dayNumber { background: #ff4d4f; color: #fff; }
+.conflict small { color: #cf1322; font-weight: 600; }
+.company small { color: #0958d9; }
+.personal small { color: #237804; }
+.conflictList { max-height: 300px; overflow: auto; margin-top: 14px; }
+.conflictList div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+@media (max-width: 767px) {
+  .toolbar :global(.ant-card-body) { padding: 12px; }
+  .personalCard :global(.ant-card-head) { min-height: 0; padding: 14px 12px; }
+  .personalCard :global(.ant-card-head-wrapper) { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+  .personalCard :global(.ant-card-head-title) { overflow: visible; padding: 0; white-space: normal; }
+  .personalCard :global(.ant-card-extra) { width: 100%; margin: 0; padding: 0; }
+  .personalCardExtra { display: flex; width: 100%; }
+  .personalCardExtra :global(.ant-tag) { width: 100%; margin: 0; padding: 4px 8px; text-align: center; white-space: normal; }
+  .personalCardExtra :global(.ant-btn) { width: 100%; }
+  .personalHint { margin-bottom: 18px; }
+  .personalTools { display: flex; width: 100%; }
+  .personalTools > * { width: 100% !important; }
+  .batchActions { display: flex !important; gap: 8px; }
+  .batchActions > button { width: auto !important; min-width: 0; }
+  .batchModal :global(.ant-modal-content) { padding: 18px 16px; }
+  .calendarHeader { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+  .calendarHeader > :global(.ant-space) { grid-column: 1 / 3; grid-row: 1; justify-content: center; width: 100%; }
+  .calendarHeader > :global(.ant-btn):first-child { grid-column: 1; grid-row: 2; }
+  .calendarHeader > :global(.ant-btn):last-child { grid-column: 2; grid-row: 2; }
+  .monthSelect { width: 76px; }
+  :global(.ant-picker-calendar-header) { padding-inline: 0 !important; flex-wrap: wrap; }
+  :global(.ant-picker-content th) { font-size: 12px; }
+  :global(.ant-picker-cell-inner) { min-height: 44px !important; }
+  .cell { width: calc(100% - 3px); height: calc(100% - 3px); min-height: 45px; margin: 1.5px; padding: 3px 2px; border-radius: 7px; font-size: 12px; }
+  .dayNumber { min-width: 22px; height: 22px; }
+  .cell small { margin-top: 1px; font-size: 9px; line-height: 12px; white-space: nowrap; }
+  .conflictList div { display: block; }
+  .conflictList span { display: block; margin-top: 4px; }
+}

@@ -226,6 +226,43 @@ export const listAllAttendance = (params: {
   >(`/api/oa/attendance/records?${query.toString()}`);
 };
 
+export const getAttendanceRuleYear = (year: number) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceRuleYear>>(
+    `/api/oa/attendance/rules/${year}`,
+  );
+export const saveCompanyAttendanceHolidays = (
+  year: number,
+  dates: string[],
+  version: number,
+) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceRuleYear>>(
+    `/api/oa/attendance/rules/${year}/company-holidays`,
+    { method: 'PUT', data: { dates, version } },
+  );
+export const listAttendanceRuleUsers = (year: number) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceRuleUser[]>>(
+    `/api/oa/attendance/rules/${year}/users`,
+  );
+export const getAttendanceRuleUser = (year: number, userId: number) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceRuleUserDetail>>(
+    `/api/oa/attendance/rules/${year}/users/${userId}`,
+  );
+export const saveUserAttendanceHolidays = (
+  year: number,
+  userId: number,
+  dates: string[],
+  version: number,
+) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceRuleUserDetail>>(
+    `/api/oa/attendance/rules/${year}/users/${userId}/holidays`,
+    { method: 'PUT', data: { dates, version } },
+  );
+export const publishAttendanceRule = (year: number, version: number) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceRuleYear>>(
+    `/api/oa/attendance/rules/${year}/publish`,
+    { method: 'POST', data: { version } },
+  );
+
 export const adminPunchAttendance = (data: {
   companyId?: number;
   userId: number;
