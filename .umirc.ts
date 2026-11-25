@@ -2,6 +2,7 @@ import { defineConfig } from '@umijs/max';
 
 export default defineConfig({
   antd: {},
+  esbuildMinifyIIFE: true,
   access: {},
   model: {},
   initialState: {},
@@ -277,7 +278,17 @@ export default defineConfig({
           name: '审批中心',
           path: '/oa/approval',
           routes: [
-            { path: '/oa/approval', redirect: '/oa/approval/my' },
+            { path: '/oa/approval', redirect: '/oa/approval/leave-requests' },
+            {
+              name: '请假申请',
+              path: '/oa/approval/leave-requests',
+              component: './AttendanceLeave',
+            },
+            {
+              name: '请假审批',
+              path: '/oa/approval/leave-review',
+              component: './AttendanceLeave',
+            },
             {
               name: '补打卡申请',
               path: '/oa/approval/correction-requests',

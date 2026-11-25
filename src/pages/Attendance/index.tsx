@@ -1,3 +1,5 @@
+import AttendanceSchedule from '@/components/AttendanceSchedule';
+import { attendanceStatus } from '@/utils/attendanceStatus';
 import {
   createAttendanceCorrection,
   listMyAttendance,
@@ -14,6 +16,7 @@ import {
   Input,
   message,
   Modal,
+  Select,
   Space,
   Spin,
   Table,
@@ -45,19 +48,6 @@ const formatTime = (value?: string) =>
   value ? dayjs(value).format('MM-DD HH:mm:ss') : '-';
 const formatClock = (value?: string) =>
   value ? dayjs(value).format('HH:mm:ss') : '-';
-const statusMap: Record<
-  ManagementAPI.AttendanceSummary['status'],
-  [string, string]
-> = {
-  NO_RECORD: ['无记录', 'default'],
-  PENDING_SETTLEMENT: ['待结算', 'processing'],
-  ABSENT: ['缺勤', 'error'],
-  SINGLE: ['单次打卡', 'warning'],
-  NORMAL: ['正常', 'success'],
-  RULE_MISSING: ['规则未配置', 'error'],
-  COMPANY_HOLIDAY: ['公司休假', 'blue'],
-  PERSONAL_HOLIDAY: ['个人休假', 'green'],
-};
 const columns = [
   { title: '日期', dataIndex: 'punchDate', key: 'punchDate' },
   {
@@ -77,8 +67,8 @@ const columns = [
     title: '状态',
     dataIndex: 'status',
     key: 'status',
-    render: (value: ManagementAPI.AttendanceSummary['status']) => {
-      const [label, color] = statusMap[value] || ['未知', 'default'];
+    render: (_value: unknown, row: ManagementAPI.AttendanceSummary) => {
+      const [label, color] = attendanceStatus(row);
       return <Tag color={color}>{label}</Tag>;
     },
   },
@@ -177,11 +167,12 @@ export default function AttendancePage() {
       setLocationLoading(false);
     }
   };
-  const punch = async () => {
+  const punch = async (punchType: 'IN' | 'OUT') => {
     setPunching(true);
     try {
       const position = await getLocation();
       const response = await punchAttendance({
+        punchType,
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy,
@@ -211,10 +202,12 @@ export default function AttendancePage() {
   const submitCorrection = async (values: {
     requestedPunchTime: Dayjs;
     reason: string;
+    punchType: 'IN' | 'OUT';
   }) => {
     try {
       if (!correctionLocation) throw new Error('请选择补打卡位置');
       const response = await createAttendanceCorrection({
+        punchType: values.punchType,
         requestedPunchTime: values.requestedPunchTime.format(
           'YYYY-MM-DD HH:mm:ss',
         ),
@@ -243,15 +236,26 @@ export default function AttendancePage() {
         <Space className={styles.pageActions} size={16}>
           <Button
             type="primary"
+            aria-label="上班打卡"
+            disabled={punching}
             loading={punching}
-            onClick={() => void punch()}
+            onClick={() => void punch('IN')}
           >
-            立即打卡
+            上班打卡
           </Button>
+          <Button aria-label="下班打卡" disabled={punching} loading={punching} onClick={() => void punch('OUT')}>下班打卡</Button>
           <Button onClick={() => void prepareCorrection()}>申请补打卡</Button>
+          <Button
+            onClick={() => history.push(
+              `/oa/approval/leave-requests?date=${dayjs().format(dateFormat)}`,
+            )}
+          >
+            申请请假
+          </Button>
         </Space>
       }
     >
+      <AttendanceSchedule date={dayjs().format(dateFormat)} />
       <div className={styles.filterBar}>
         <DatePicker
           picker="month"
@@ -294,10 +298,7 @@ export default function AttendancePage() {
           {records.length ? (
             <div className={styles.recordList}>
               {records.map((row) => {
-                const [label, color] = statusMap[row.status] || [
-                  '未知',
-                  'default',
-                ];
+                const [label, color] = attendanceStatus(row);
                 return (
                   <Card className={styles.recordCard} key={row.punchDate}>
                     <div className={styles.recordHeader}>
@@ -358,7 +359,10 @@ export default function AttendancePage() {
         onOk={() => form.submit()}
         confirmLoading={locationLoading}
       >
-        <Form form={form} layout="vertical" onFinish={submitCorrection}>
+        <Form form={form} layout="vertical" onFinish={submitCorrection} initialValues={{punchType: 'IN'}}>
+          <Form.Item name="punchType" label="打卡类型" rules={[{required: true, message: '请选择打卡类型'}]}>
+            <Select options={[{value: 'IN', label: '上班打卡'}, {value: 'OUT', label: '下班打卡'}]} />
+          </Form.Item>
           <Form.Item
             name="requestedPunchTime"
             label="补打卡时间"

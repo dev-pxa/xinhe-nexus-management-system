@@ -15,3 +15,5 @@ export const listMyProfileChanges = () => request<API.ApiResponse<ManagementAPI.
 export const updateEmployeeProfile = (id: number, data: Record<string, unknown>) => request<API.ApiResponse<ManagementAPI.EmployeeProfile>>(`/api/hr/profiles/${id}`, { method: 'PUT', data, ...tenantOptions() });
 export const listPendingProfileChanges = () => request<API.ApiResponse<ManagementAPI.ProfileChangeRequest[]>>('/api/hr/profiles/change-requests/pending', tenantOptions());
 export const decideProfileChange = (id: number, approve: boolean, comment?: string) => request<API.ApiResponse<{ id: number; status: string }>>(`/api/hr/profiles/change-requests/${id}/decide`, { method: 'POST', data: { approve, comment }, ...tenantOptions() });
+
+export const deleteEmployeeProfile = (id: number) => request<API.ApiResponse<null>>(`/api/hr/profiles/${id}`, { method: 'DELETE', ...tenantOptions() });

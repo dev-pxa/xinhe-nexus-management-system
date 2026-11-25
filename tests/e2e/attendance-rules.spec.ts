@@ -24,7 +24,7 @@ const gotoRulePage = async (page: import('@playwright/test').Page, url: string) 
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/login');
-  await page.getByPlaceholder('用户名：admin').fill('admin');
+  await page.getByPlaceholder('用户名或手机号').fill('admin');
   await page.getByPlaceholder('密码').fill('admin');
   await page.getByRole('button', { name: '登 录' }).click();
   await expect(page).toHaveURL(/\/dashboard/);
@@ -89,7 +89,7 @@ test('公司放假调整产生冲突后弹窗并跳转冲突员工', async ({ pa
     }),
   );
 
-  await gotoRulePage(page, '/oa/attendance-rules?year=2027');
+  await gotoRulePage(page, '/oa/attendance-rules?year=2027&tab=company');
   await expect(page.getByText('已发布版本仍在生效，当前修改尚未发布')).toBeVisible();
   const monthPicker=page.locator('.ant-select').filter({has:page.getByRole('combobox',{name:'快速切换月份'})});
   await page.locator('[data-date="2027-01-04"]').first().click();
@@ -168,7 +168,7 @@ test('过去无假日期置灰且过去公司假保留高亮', async ({ page }) 
   await page.route('**/api/oa/attendance/rules/2026', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 0, message: 'success', data: yearRule({ year: 2026, requiredPersonalHolidayCount: 6, companyHolidayDates: ['2026-11-02'] }) }) }),
   );
-  await gotoRulePage(page, '/oa/attendance-rules?year=2026');
+  await gotoRulePage(page, '/oa/attendance-rules?year=2026&tab=company');
   for(let index=0;index<10;index+=1)await page.getByRole('button',{name:'下个月'}).click();
   const frozen = page.locator('[data-date="2026-11-01"]').last();
   const holiday = page.locator('[data-date="2026-11-02"]').last();

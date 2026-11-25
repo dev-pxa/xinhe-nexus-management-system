@@ -181,13 +181,24 @@ declare namespace ManagementAPI {
     lastPunchTime?: string;
     punchCount: number;
     dayType?: 'WORKDAY' | 'COMPANY_HOLIDAY' | 'PERSONAL_HOLIDAY';
+    leaveType?: 'SICK' | 'COMPENSATORY' | 'PERSONAL' | 'OTHER';
+    late?: boolean | number;
+    early?: boolean | number;
     status:
+      | 'LATE'
+      | 'EARLY'
+      | 'LATE_EARLY'
+      | 'WAITING_IN'
+      | 'WAITING_OUT'
+      | 'MISSING_IN'
+      | 'MISSING_OUT'
       | 'NO_RECORD'
       | 'PENDING_SETTLEMENT'
       | 'ABSENT'
       | 'SINGLE'
       | 'NORMAL'
       | 'RULE_MISSING'
+      | 'ON_LEAVE'
       | 'COMPANY_HOLIDAY'
       | 'PERSONAL_HOLIDAY';
   };
@@ -196,7 +207,23 @@ declare namespace ManagementAPI {
     userName: string;
     dates: string[];
   };
+  type AttendanceTimeRange = {
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
+    flexibleMinutes?: number;
+  };
+  type AttendanceSchedule = {
+    date: string;
+    status: 'WORKDAY' | 'COMPANY_HOLIDAY' | 'PERSONAL_HOLIDAY' | 'UNCONFIGURED';
+    startTime?: string;
+    endTime?: string;
+    flexibleMinutes?: number;
+  };
   type AttendanceRuleYear = {
+    timeRanges?: AttendanceTimeRange[];
+    timeExemptDates?: string[];
     id?: number;
     year: number;
     status: 'UNCONFIGURED' | 'DRAFT' | 'PUBLISHED';
@@ -298,6 +325,7 @@ declare namespace ManagementAPI {
     status: 'DRAFT' | 'PENDING' | 'REVIEWING' | 'APPROVED' | 'REJECTED';
     currentReviewerId?: number;
     currentNodeName?: string;
+    directFinalApproval?: boolean | number;
     applicantName?: string;
     applicantOrgName?: string;
     approvalRound?: number;

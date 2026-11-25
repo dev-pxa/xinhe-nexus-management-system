@@ -135,7 +135,7 @@ export default function ExpenseListPage() {
                       ? '编辑'
                       : '查看'}
                   </Button>
-                  {row.status === 'PENDING' && (
+                  {(row.status === 'PENDING' || Boolean(row.directFinalApproval)) && (
                     <Button
                       type="link"
                       size="small"
@@ -211,7 +211,7 @@ export default function ExpenseListPage() {
                     >
                       {editable ? '编辑报销' : '查看详情'}
                     </Button>
-                    {row.status === 'PENDING' && (
+                    {(row.status === 'PENDING' || Boolean(row.directFinalApproval)) && (
                       <Button onClick={() => withdraw(row)}>撤回</Button>
                     )}
                     {editable && (

@@ -159,6 +159,7 @@ export const resetUserPassword = (id: number, newPassword: string) =>
   });
 
 export const punchAttendance = (data?: {
+  punchType?: 'IN' | 'OUT';
   latitude: number;
   longitude: number;
   accuracy?: number;
@@ -264,6 +265,7 @@ export const publishAttendanceRule = (year: number, version: number) =>
   );
 
 export const adminPunchAttendance = (data: {
+  punchType?: 'IN' | 'OUT';
   companyId?: number;
   userId: number;
   punchTime: string;
@@ -392,3 +394,13 @@ export const uploadExpenseAttachment = (
 
 export const expenseAttachmentUrl = (id: number) =>
   `/api/oa/expenses/attachments/${id}/content`;
+
+export const saveAttendanceTimes = (year: number, ranges: ManagementAPI.AttendanceTimeRange[]) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceRuleYear>>(
+    `/api/oa/attendance/rules/${year}/time-ranges`, { method: 'PUT', data: { ranges } },
+  );
+
+export const getMyAttendanceSchedule = (date: string) =>
+  request<API.ApiResponse<ManagementAPI.AttendanceSchedule>>(
+    '/api/oa/attendance/rules/my-schedule', { params: { date }, skipErrorHandler: true },
+  );

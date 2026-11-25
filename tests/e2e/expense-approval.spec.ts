@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/login');
-  await page.getByPlaceholder('用户名：admin').fill('admin');
+  await page.getByPlaceholder('用户名或手机号').fill('admin');
   await page.getByPlaceholder('密码').fill('admin');
   await page.getByRole('button', { name: '登 录' }).click();
   await expect(page).toHaveURL(/\/dashboard/);
@@ -208,5 +208,84 @@ test('只有直属负责人未处理的报销单显示撤回入口', async ({ pa
   await expect(
     page.getByText('待直属负责人审批', { exact: true }).first(),
   ).toBeVisible();
-  await expect(page.getByText('待最终审批', { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText('待最终审批', { exact: true }).first(),
+  ).toBeVisible();
+});
+
+test('上级负责人就是最终审批人时详情仅展示一个审批节点', async ({ page }) => {
+  let approved = false;
+  await page.route('**/api/oa/expenses/88', (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        data: {
+          ...detailClaim,
+          attachments: [],
+          status: approved ? 'APPROVED' : 'REVIEWING',
+          canReview: !approved,
+          approvalNodes: [
+            {
+              id: 701,
+              approvalRound: 1,
+              sequenceNo: 1,
+              nodeType: 'FINAL_APPROVER',
+              reviewerName: '公司管理员',
+              status: approved ? 'APPROVED' : 'PENDING',
+            },
+          ],
+        },
+      },
+    }),
+  );
+  await page.route('**/api/oa/expenses/88/review', (route) => {
+    expect(route.request().postDataJSON()).toMatchObject({ action: 'APPROVE' });
+    approved = true;
+    return route.fulfill({ json: { code: 0, data: null } });
+  });
+  await page.goto('/oa/expense/88');
+  await expect(page.getByText(/最终审批.*公司管理员/)).toBeVisible();
+  await expect(
+    page.getByText('直属部门负责人审批：', { exact: false }),
+  ).toHaveCount(0);
+  await page.getByRole('button', { name: /^通\s*过$/ }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: '确认通过' })
+    .click();
+  await expect(
+    page.getByText('审核通过', { exact: true }).first(),
+  ).toBeVisible();
+});
+
+test('单节点终审尚未处理时员工可从列表撤回', async ({ page }) => {
+  let withdrawn = false;
+  await page.route('**/api/oa/expenses/mine', (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        data: [
+          {
+            ...pendingClaim,
+            status: withdrawn ? 'DRAFT' : 'REVIEWING',
+            directFinalApproval: !withdrawn,
+          },
+        ],
+      },
+    }),
+  );
+  await page.route('**/api/oa/expenses/88/withdraw', (route) => {
+    withdrawn = true;
+    return route.fulfill({ json: { code: 0, data: null } });
+  });
+  await page.goto('/oa/expense');
+  await page.getByRole('button', { name: '撤回', exact: true }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: '确认撤回' })
+    .click();
+  await expect(page.getByText('报销单已撤回', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('table').getByText('草稿', { exact: true }),
+  ).toBeVisible();
 });

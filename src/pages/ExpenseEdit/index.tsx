@@ -62,7 +62,7 @@ const nodeStatusMap: Record<string, string> = {
   PENDING: '待审核',
   APPROVED: '已通过',
   REJECTED: '已驳回',
-  CANCELLED: '已撤回',
+  CANCELLED: '已结束',
 };
 
 export default function ExpenseEditPage() {
@@ -260,10 +260,10 @@ export default function ExpenseEditPage() {
       content: (
         <div>
           <p>
-            报销提交后先由直属部门负责人审批，再由公司管理员或拥有“报销最终审批”权限的人员终审。
+            报销由本部门负责人审批；申请人是负责人时向上级部门查找。匹配到的负责人具备最终审批资格时，一次审批完成，否则继续流转终审。
           </p>
           <p>
-            直属负责人尚未处理时可以撤回；发生任何审批后进入审核中，不能再撤回。
+            审批人尚未处理时可以撤回，发生审批后请查看审核流转进度。
           </p>
           <p>发票和其他附件支持 PDF、JPG、JPEG、PNG，可在详情页预览。</p>
         </div>

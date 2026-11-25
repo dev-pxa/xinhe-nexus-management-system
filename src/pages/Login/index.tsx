@@ -50,8 +50,8 @@ export default function LoginPage() {
           <ProFormText
             name="username"
             fieldProps={{ prefix: <UserOutlined /> }}
-            placeholder="用户名：admin"
-            rules={[{ required: true, message: '请输入用户名' }]}
+            placeholder="用户名或手机号"
+            rules={[{ required: true, message: '请输入用户名或手机号' }]}
           />
           <ProFormText.Password
             name="password"

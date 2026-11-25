@@ -1,3 +1,4 @@
+import { attendanceStatus } from '@/utils/attendanceStatus';
 import {
   adminPunchAttendance,
   listAllAttendance,
@@ -37,19 +38,6 @@ const mapUrl = (latitude: number, longitude: number) =>
   },${longitude + 0.01},${
     latitude + 0.01
   }&layer=mapnik&marker=${latitude},${longitude}`;
-const statusMap: Record<
-  ManagementAPI.AttendanceSummary['status'],
-  [string, string]
-> = {
-  NO_RECORD: ['无记录', 'default'],
-  PENDING_SETTLEMENT: ['待结算', 'processing'],
-  ABSENT: ['缺勤', 'error'],
-  SINGLE: ['单次打卡', 'warning'],
-  NORMAL: ['正常', 'success'],
-  RULE_MISSING: ['规则未配置', 'error'],
-  COMPANY_HOLIDAY: ['公司休假', 'blue'],
-  PERSONAL_HOLIDAY: ['个人休假', 'green'],
-};
 const baseColumns = [
   { title: '日期', dataIndex: 'punchDate', key: 'punchDate' },
   {
@@ -69,8 +57,8 @@ const baseColumns = [
     title: '状态',
     dataIndex: 'status',
     key: 'status',
-    render: (value: ManagementAPI.AttendanceSummary['status']) => {
-      const [label, color] = statusMap[value] || ['未知', 'default'];
+    render: (_value: unknown, row: ManagementAPI.AttendanceSummary) => {
+      const [label, color] = attendanceStatus(row);
       return <Tag color={color}>{label}</Tag>;
     },
   },
@@ -201,6 +189,7 @@ export default function AllAttendancePage() {
     companyId?: number;
     userId: number;
     punchTime: Dayjs;
+    punchType: 'IN' | 'OUT';
     remark?: string;
   }) => {
     if (!location) {
@@ -208,6 +197,7 @@ export default function AllAttendancePage() {
       return;
     }
     const response = await adminPunchAttendance({
+      punchType: values.punchType,
       companyId: values.companyId || companyId,
       userId: values.userId,
       punchTime: values.punchTime.format('YYYY-MM-DD HH:mm:ss'),
@@ -359,10 +349,7 @@ export default function AllAttendancePage() {
             <>
               <div className={styles.recordList}>
                 {records.map((row) => {
-                  const [label, color] = statusMap[row.status] || [
-                    '未知',
-                    'default',
-                  ];
+                  const [label, color] = attendanceStatus(row);
                   return (
                     <Card
                       className={styles.recordCard}
@@ -458,7 +445,7 @@ export default function AllAttendancePage() {
           form={form}
           layout="vertical"
           onFinish={submitManualPunch}
-          initialValues={{ companyId, punchTime: dayjs() }}
+          initialValues={{ companyId, punchTime: dayjs(), punchType: 'IN' }}
         >
           {isPlatform && (
             <Form.Item
@@ -491,6 +478,9 @@ export default function AllAttendancePage() {
                 value: item.id,
               }))}
             />
+          </Form.Item>
+          <Form.Item name="punchType" label="打卡类型" rules={[{required: true, message: '请选择打卡类型'}]}>
+            <Select options={[{value: 'IN', label: '上班打卡'}, {value: 'OUT', label: '下班打卡'}]} />
           </Form.Item>
           <Form.Item
             name="punchTime"

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('用户岗位为单选并以 positionId 保存', async ({ page }) => {
   await page.goto('/login');
-  await page.getByPlaceholder('用户名：admin').fill('admin');
+  await page.getByPlaceholder('用户名或手机号').fill('admin');
   await page.getByPlaceholder('密码').fill('admin');
   await page.getByRole('button', { name: '登 录' }).click();
   await expect(page).toHaveURL(/\/dashboard/);

@@ -1,3 +1,4 @@
+import { userPhoneRule } from '@/utils/userPhone';
 import {
   createUser,
   deleteUser,
@@ -368,7 +369,7 @@ export default function UserPage() {
               name="phone"
               label="手机号"
               rules={
-                editing ? [] : [{ required: true, message: '请输入手机号' }]
+                [userPhoneRule, ...(!editing ? [{ required: true, message: '请输入手机号' }] : [])]
               }
             >
               <Input maxLength={32} />

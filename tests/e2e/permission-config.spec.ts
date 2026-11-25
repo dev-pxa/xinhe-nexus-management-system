@@ -77,7 +77,7 @@ const permissions = [
 
 test('岗位权限配置页只展示可配置业务权限并支持筛选与移除', async ({ page }) => {
   await page.goto('/login');
-  await page.getByPlaceholder('用户名：admin').fill('admin');
+  await page.getByPlaceholder('用户名或手机号').fill('admin');
   await page.getByPlaceholder('密码').fill('admin');
   await page.getByRole('button', { name: '登 录' }).click();
   await expect(page).toHaveURL(/\/dashboard/);

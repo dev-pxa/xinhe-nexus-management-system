@@ -1,12 +1,14 @@
+import AttendanceSchedule from '@/components/AttendanceSchedule';
 import {
   listAllAttendance,
   listAttendancePunches,
   listMyAttendance,
   listMyAttendancePunches,
 } from '@/services/management';
+import { attendanceStatus } from '@/utils/attendanceStatus';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
-import { Button, Card, Empty, Spin, Tag } from 'antd';
+import { Button, Card, Empty, Space, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import styles from '../oaMobile.less';
@@ -62,26 +64,45 @@ export default function AttendanceDetailPage() {
       cancelled = true;
     };
   }, [companyId, date, userId]);
+  const [statusLabel, statusColor] = attendanceStatus(summary);
   const emptyText =
     summary?.status === 'COMPANY_HOLIDAY'
       ? '当天为公司休假，无需打卡'
       : summary?.status === 'PERSONAL_HOLIDAY'
-        ? '当天为个人休假，无需打卡'
-        : summary?.status === 'RULE_MISSING'
-          ? '当天考勤规则尚未配置'
-          : '当天暂无打卡明细';
+      ? '当天为个人休假，无需打卡'
+      : summary?.status === 'RULE_MISSING'
+      ? '当天考勤规则尚未配置'
+      : summary?.status === 'ON_LEAVE'
+      ? statusLabel
+      : '当天暂无打卡明细';
   return (
     <PageContainer
       className={styles.page}
       title={`${displayName ? `${displayName} ` : ''}${date} 打卡明细`}
+      content={<Space wrap>{summary && <Tag color={statusColor}>{statusLabel}</Tag>}{!userId && <AttendanceSchedule date={date} />}</Space>}
       extra={
-        <Button
-          onClick={() =>
-            history.push(userId ? '/oa/all-attendance' : '/oa/attendance')
-          }
-        >
-          返回考勤
-        </Button>
+        <Space wrap>
+          {!userId && (
+            <Button
+              onClick={() =>
+                history.push(
+                  `/oa/approval/leave-requests?date=${encodeURIComponent(
+                    date,
+                  )}`,
+                )
+              }
+            >
+              申请请假
+            </Button>
+          )}
+          <Button
+            onClick={() =>
+              history.push(userId ? '/oa/all-attendance' : '/oa/attendance')
+            }
+          >
+            返回考勤
+          </Button>
+        </Space>
       }
     >
       <div className={styles.desktopOnly}>

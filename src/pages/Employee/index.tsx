@@ -1,3 +1,4 @@
+import { userPhoneRule } from '@/utils/userPhone';
 import { listOrganizations, listPositions } from '@/services/management';
 import {
   createOnboardingInvitation,
@@ -7,7 +8,7 @@ import {
   regenerateOnboardingInvitation,
   revokeOnboardingInvitation,
 } from '@/services/onboarding';
-import { updateEmployeeProfile } from '@/services/profile';
+import { deleteEmployeeProfile, updateEmployeeProfile } from '@/services/profile';
 import {
   CopyOutlined,
   EyeOutlined,
@@ -97,7 +98,8 @@ const CopyValue = ({ value, label }: { value?: string; label: string }) => {
 };
 
 export default function EmployeePage() {
-  useModel('@@initialState');
+  const { initialState } = useModel('@@initialState');
+  const canDeleteProfile = initialState?.currentUser?.roles?.includes('COMPANY_ADMIN');
   const [rows, setRows] = useState<ManagementAPI.OnboardingInvitation[]>([]);
   const [orgs, setOrgs] = useState<ManagementAPI.Organization[]>([]);
   const [positions, setPositions] = useState<ManagementAPI.Position[]>([]);
@@ -116,6 +118,44 @@ export default function EmployeePage() {
   const reload = async () => {
     const r = await listOnboardingInvitations(status);
     setRows(r.data || []);
+  };
+  const confirmDeleteProfile = (profileId: number, candidateName: string) => {
+    Modal.confirm({
+      title: `删除“${candidateName}”的人员档案？`,
+      content: '将移除此人的档案和入职记录入口，注销本公司的关联账号权限，并结束待审批的档案变更。历史考勤和业务记录会保留。',
+      okText: '删除档案',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        const response = await deleteEmployeeProfile(profileId);
+        if (response.code !== 0) throw new Error(response.message || '删除档案失败');
+        message.success('人员档案已删除');
+        await reload();
+      },
+    });
+  };
+  const profileActions = (row: ManagementAPI.OnboardingInvitation, mobile = false) => {
+    const profileId = row.profileId;
+    if (row.status !== 'SUBMITTED' || row.profileStatus !== 'CREATED' || !profileId) return null;
+
+    return (
+      <>
+        <Button
+          type={mobile ? 'primary' : 'link'}
+          icon={mobile ? undefined : <EyeOutlined />}
+          onClick={async () => setProfile((await getEmployeeProfile(profileId)).data)}
+        >
+          查看档案
+        </Button>
+        {canDeleteProfile && (
+          <Button type={mobile ? 'default' : 'link'} danger
+            onClick={() => confirmDeleteProfile(profileId, row.candidateName)}
+          >
+            删除档案
+          </Button>
+        )}
+      </>
+    );
   };
   useEffect(() => {
     void reload();
@@ -267,21 +307,7 @@ export default function EmployeePage() {
                       撤销
                     </Button>
                   )}
-                  {row.status === 'SUBMITTED' &&
-                    row.profileStatus === 'CREATED' &&
-                    row.profileId && (
-                      <Button
-                        type="link"
-                        icon={<EyeOutlined />}
-                        onClick={async () =>
-                          setProfile(
-                            (await getEmployeeProfile(row.profileId!)).data,
-                          )
-                        }
-                      >
-                        查看档案
-                      </Button>
-                    )}
+                  {profileActions(row)}
                 </Space>
               ),
             },
@@ -365,20 +391,7 @@ export default function EmployeePage() {
                     撤销
                   </Button>
                 )}
-                {row.status === 'SUBMITTED' &&
-                  row.profileStatus === 'CREATED' &&
-                  row.profileId && (
-                    <Button
-                      type="primary"
-                      onClick={async () =>
-                        setProfile(
-                          (await getEmployeeProfile(row.profileId!)).data,
-                        )
-                      }
-                    >
-                      查看档案
-                    </Button>
-                  )}
+                {profileActions(row, true)}
               </div>
             </Card>
           ))
@@ -671,7 +684,7 @@ export default function EmployeePage() {
           >
             <Input />
           </Form.Item>
-          <Form.Item name="phone" label="手机号">
+          <Form.Item name="phone" label="手机号" rules={[userPhoneRule]}>
             <Input />
           </Form.Item>
           <Form.Item

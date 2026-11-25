@@ -1,3 +1,4 @@
+import { userPhoneRule } from '@/utils/userPhone';
 import { ProfileChangeDiff } from '@/components/ProfileChangeDiff';
 import { setAuthenticatedUser } from '@/services/authState';
 import {
@@ -152,7 +153,7 @@ export default function PersonalProfilePage() {
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item name="phone" label="手机号">
+              <Form.Item name="phone" label="手机号" rules={[userPhoneRule]}>
                 <Input maxLength={32} />
               </Form.Item>
             </Col>

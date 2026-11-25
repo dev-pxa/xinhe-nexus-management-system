@@ -12,6 +12,7 @@ import { Alert, Button, Calendar, Card, DatePicker, Empty, message, Modal, Selec
 import dayjs, { Dayjs } from 'dayjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './index.less';
+import TimeRanges from './TimeRanges';
 
 const statusText = { UNCONFIGURED: '未配置', DRAFT: '草稿待发布', PUBLISHED: '已发布' } as const;
 const weekdays = [{label:'星期一',value:1},{label:'星期二',value:2},{label:'星期三',value:3},{label:'星期四',value:4},{label:'星期五',value:5},{label:'星期六',value:6},{label:'星期日',value:0}];
@@ -21,7 +22,7 @@ const sorted = (values:Set<string>) => [...values].sort();
 export default function AttendanceRules(){
   const location=useLocation(); const query=useMemo(()=>new URLSearchParams(location.search),[location.search]);
   const [year,setYear]=useState(Number(query.get('year'))||dayjs().year());
-  const [tab,setTab]=useState(query.get('tab')==='personal'?'personal':'company');
+  const [tab,setTab]=useState(['personal','company'].includes(query.get('tab') || '') ? query.get('tab')! : 'time');
   const [rule,setRule]=useState<ManagementAPI.AttendanceRuleYear>(); const [users,setUsers]=useState<ManagementAPI.AttendanceRuleUser[]>([]);
   const [userId,setUserId]=useState<number|undefined>(query.get('userId')?Number(query.get('userId')):undefined);
   const [detail,setDetail]=useState<ManagementAPI.AttendanceRuleUserDetail>(); const [companyDates,setCompanyDates]=useState(new Set<string>()); const [personalDates,setPersonalDates]=useState(new Set<string>());
@@ -43,7 +44,7 @@ export default function AttendanceRules(){
   const applyBatch=()=>{if(!batchMode)return;if(!batchWeekdays.length){message.warning('请至少选择一个星期');return}const start=dayjs(`${year}-01-01`);const end=dayjs(`${year}-12-31`);const today=dayjs();setPersonalDates(prev=>{const next=new Set(prev);for(let d=start;!d.isAfter(end,'day');d=d.add(1,'day'))if(d.isAfter(today,'day')&&batchWeekdays.includes(d.day())){const k=d.format('YYYY-MM-DD');if(batchMode==='remove')next.delete(k);else next.add(k)}return next});setBatchMode(undefined);setBatchWeekdays([])};
   const cell=(date:Dayjs,mode:'company'|'personal')=>{const k=date.format('YYYY-MM-DD');const company=companyDates.has(k);const personal=mode==='personal'&&personalDates.has(k);const conflict=mode==='personal'&&company&&personal;const holiday=mode==='company'?company:company||personal;const frozen=!date.isAfter(dayjs(),'day')&&!holiday;const outside=date.month()!==panelDate.month();return <div data-date={k} title={frozen?'已冻结，不可修改':undefined} aria-disabled={frozen} className={`${styles.cell} ${outside?styles.outside:''} ${frozen?styles.frozen:''} ${company?styles.company:''} ${personal?styles.personal:''} ${conflict?styles.conflict:''}`}><span className={styles.dayNumber}>{date.date()}</span>{conflict?<small>冲突</small>:company?<small>公司假</small>:personal?<small>个人假</small>:frozen?<small>已冻结</small>:null}</div>};
   const calendarHeader=({value}:{value:Dayjs})=><div className={styles.calendarHeader}><Button disabled={value.month()===0} onClick={()=>setPanelDate(value.subtract(1,'month'))}>上个月</Button><Space size={8}><Typography.Text strong>{value.year()}年</Typography.Text><Select aria-label="快速切换月份" value={value.month()} options={monthOptions} onChange={month=>setPanelDate(value.month(month))} className={styles.monthSelect}/></Space><Button disabled={value.month()===11} onClick={()=>setPanelDate(value.add(1,'month'))}>下个月</Button></div>;
-  return <PageContainer title="考勤规则" subTitle="按年度设置，先公司后个人">
+  return <PageContainer title="考勤规则" subTitle="按年度设置考勤时间及放假日期">
     <Spin spinning={loading}>
       <Card className={styles.toolbar}>
         <Space wrap>
@@ -54,11 +55,12 @@ export default function AttendanceRules(){
         </Space>
       </Card>
       <Tabs activeKey={tab} onChange={k=>{setTab(k);updateUrl(k,userId)}} items={[
-        {key:'company',label:'1. 公司放假',children:<Card title="选择全公司放假日期" extra={<Button type="primary" loading={saving} onClick={saveCompany}>保存公司放假</Button>}>
+        {key:'time',label:'1. 考勤时间',children:<TimeRanges year={year} rule={rule} onSaved={next=>{setRule(next);void load()}}/>},
+        {key:'company',label:'2. 公司放假',children:<Card title="选择全公司放假日期" extra={<Button type="primary" loading={saving} onClick={saveCompany}>保存公司放假</Button>}>
           <Alert showIcon type="info" message="今天及过去日期已冻结；无假期的冻结日期会置灰，公司假仍保留高亮。只能调整明天及未来日期。"/>
           <Calendar value={panelDate} headerRender={calendarHeader} onChange={setPanelDate} onSelect={(d,info)=>info.source==='date'&&toggleCompany(d)} disabledDate={d=>d.year()!==year||!d.isAfter(dayjs(),'day')} fullCellRender={d=>cell(d,'company')}/>
         </Card>},
-        {key:'personal',label:'2. 员工个人放假',disabled:!rule?.companyConfigured,children:<Card className={styles.personalCard} title="设置员工个人放假" extra={<Space wrap className={styles.personalCardExtra}>
+        {key:'personal',label:'3. 员工个人放假',disabled:!rule?.companyConfigured,children:<Card className={styles.personalCard} title="设置员工个人放假" extra={<Space wrap className={styles.personalCardExtra}>
           <Tag color={editablePersonalCount===(detail?.requiredPersonalHolidayCount??rule?.requiredPersonalHolidayCount)?'success':editablePersonalCount>(detail?.requiredPersonalHolidayCount??rule?.requiredPersonalHolidayCount??0)?'error':'processing'}>未来已选 {editablePersonalCount} / 剩余应选 {detail?.requiredPersonalHolidayCount??rule?.requiredPersonalHolidayCount??'-'} 天</Tag>
           <Button type="primary" loading={saving} disabled={!userId} onClick={savePersonal}>保存个人放假</Button>
         </Space>}>

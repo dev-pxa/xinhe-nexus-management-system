@@ -1,0 +1,505 @@
+{
+  "source": "当前dist真实页面，Playwright隔离接口脱敏演示数据；所有API写操作被拦截，无正式业务数据变更",
+  "screenshots": [
+    {
+      "name": "system-login",
+      "file": "docs/images/dom-v2/system-login.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "用户名或手机号共用输入框",
+        "输入密码后登录"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/system-login.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "employee-list-delete",
+      "file": "docs/images/dom-v2/employee-list-delete.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "查看已提交人员的档案",
+        "从列表删除人员档案"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/employee-list-delete.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "employee-delete-confirm",
+      "file": "docs/images/dom-v2/employee-delete-confirm.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "阅读关联账号和历史数据影响",
+        "确认无误才删除；本图未执行删除"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/employee-delete-confirm.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "attendance-time-ranges",
+      "file": "docs/images/dom-v2/attendance-time-ranges.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "按日期范围配置上下班和弹性时间",
+        "保存后仍需发布年度规则"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/attendance-time-ranges.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "attendance-time-gap",
+      "file": "docs/images/dom-v2/attendance-time-gap.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "缺口日期必须补齐后才能保存",
+        "查看具体未覆盖日期"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/attendance-time-gap.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "rules-company",
+      "file": "docs/images/dom-v2/rules-company.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "考勤时间配置在公司放假之前",
+        "公司假只配置日期"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/rules-company.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "rules-personal",
+      "file": "docs/images/dom-v2/rules-personal.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "先选择员工再设置个人假",
+        "核对剩余天数后保存"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/rules-personal.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "attendance-statuses",
+      "file": "docs/images/dom-v2/attendance-statuses.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "分别选择上班、下班打卡",
+        "异常只标记迟到或早退",
+        "已批准请假显示具体假种"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/attendance-statuses.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "attendance-admin-entry",
+      "file": "docs/images/dom-v2/attendance-admin-entry.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "指定要补录的员工",
+        "补录必须选择上班或下班类型"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/attendance-admin-entry.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "all-attendance",
+      "file": "docs/images/dom-v2/all-attendance.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "查看公司范围考勤状态",
+        "个人假仍显示个人假"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/all-attendance.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "oa-navigation",
+      "file": "docs/images/dom-v2/oa-navigation.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "员工从请假申请进入",
+        "审批人统一从请假审批进入"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/oa-navigation.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-list",
+      "file": "docs/images/dom-v2/leave-list.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "从列表打开申请详情",
+        "撤回在列表操作中"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-list.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-create",
+      "file": "docs/images/dom-v2/leave-create.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "选择病假、调休假、事假或其他",
+        "证明附件支持图片和PDF"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-create.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-date-preview",
+      "file": "docs/images/dom-v2/leave-date-preview.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "范围天数与实际请假天数分开显示",
+        "个人假不计入请假，绿色高亮"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-date-preview.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-detail-two-stage",
+      "file": "docs/images/dom-v2/leave-detail-two-stage.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "实际请假天数扣除休息日",
+        "查看具体审批人和当前节点"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-detail-two-stage.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-detail-single",
+      "file": "docs/images/dom-v2/leave-detail-single.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "已到公司顶层管理员，只需一个节点"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-detail-single.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-review-list",
+      "file": "docs/images/dom-v2/leave-review-list.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "所有请假审批使用同一个列表",
+        "进入详情核对申请后再审批"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-review-list.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-review-detail",
+      "file": "docs/images/dom-v2/leave-review-detail.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "核对日期、附件和审批进度",
+        "通过或驳回当前申请"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-review-detail.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-image-preview",
+      "file": "docs/images/dom-v2/leave-image-preview.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "图片在页面内预览"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-image-preview.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "leave-pdf-preview",
+      "file": "docs/images/dom-v2/leave-pdf-preview.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "PDF通过预览窗口打开"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/leave-pdf-preview.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "expense-single-stage",
+      "file": "docs/images/dom-v2/expense-single-stage.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "申请人是负责人时向上查找审批人",
+        "匹配终审人后，一个节点完成审批"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/expense-single-stage.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "expense-withdraw-list",
+      "file": "docs/images/dom-v2/expense-withdraw-list.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "单节点终审尚未处理时可撤回",
+        "查看当前审批状态"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/expense-withdraw-list.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "expense-route-preview",
+      "file": "docs/images/dom-v2/expense-route-preview.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "提交前查看负责人向上匹配说明"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/expense-route-preview.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "mobile-leave-list",
+      "file": "docs/images/mobile-v2/mobile-leave-list.png",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "notes": [
+        "移动端使用卡片列表",
+        "从卡片操作中撤回"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/mobile-leave-list.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 390,
+        "height": 1000
+      }
+    },
+    {
+      "name": "mobile-leave-detail",
+      "file": "docs/images/mobile-v2/mobile-leave-detail.png",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "notes": [
+        "个人假、公司假绿色突出显示"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/mobile-leave-detail.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 390,
+        "height": 1000
+      }
+    },
+    {
+      "name": "mobile-rules-personal",
+      "file": "docs/images/mobile-v2/mobile-rules-personal.png",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "notes": [
+        "核对天数后保存个人放假"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/mobile-rules-personal.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 390,
+        "height": 1231
+      }
+    },
+    {
+      "name": "phone-duplicate",
+      "file": "docs/images/dom-v2/phone-duplicate.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "号码重复时保存失败",
+        "调整手机号后重新保存"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/phone-duplicate.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    },
+    {
+      "name": "attendance-correction-create",
+      "file": "docs/images/dom-v2/attendance-correction-create.png",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "notes": [
+        "补卡必须选择上班或下班类型",
+        "填写补卡原因，提交前补齐时间和位置"
+      ],
+      "raw": "/private/tmp/xinhe-manual-session-v2/attendance-correction-create.png",
+      "fixture": "隔离接口演示数据，未修改业务记录",
+      "captureSize": {
+        "width": 1280,
+        "height": 1000
+      }
+    }
+  ],
+  "failures": []
+}

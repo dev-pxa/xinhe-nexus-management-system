@@ -1,3 +1,4 @@
+import { userPhoneRule } from '@/utils/userPhone';
 import {
   changePassword,
   getPersonalProfile,
@@ -114,7 +115,7 @@ export default function PersonalProfile({ trigger }: { trigger: ReactNode }) {
           >
             <Input maxLength={64} />
           </Form.Item>
-          <Form.Item name="phone" label="手机号">
+          <Form.Item name="phone" label="手机号" rules={[userPhoneRule]}>
             <Input maxLength={32} />
           </Form.Item>
           <Form.Item name="email" label="邮箱" rules={[{ type: 'email' }]}>

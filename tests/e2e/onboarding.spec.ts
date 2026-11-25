@@ -354,3 +354,80 @@ test('未登录访问生成的入职链接不会跳转登录页', async ({ page 
   await expect(page).not.toHaveURL(/\/login/);
   expect(authCalled).toBeFalsy();
 });
+
+test('公司管理员从人员档案列表操作确认删除并刷新列表', async ({ page }) => {
+  let deleted = false;
+  const employee = {
+    id: 12,
+    candidateName: '档案测试员工',
+    username: 'profile_delete',
+    departmentName: '研发部',
+    positionName: '工程师',
+    status: 'LOCKED',
+    educations: [],
+  };
+  await page.route('**/api/auth/current', (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        data: {
+          id: 1,
+          username: 'admin',
+          name: '管理员',
+          companyId: 1,
+          companyName: '测试公司',
+          roles: ['COMPANY_ADMIN'],
+          permissions: [],
+        },
+      },
+    }),
+  );
+  await page.route('**/api/system/orgs**', (route) =>
+    route.fulfill({ json: { code: 0, data: [] } }),
+  );
+  await page.route('**/api/hr/onboarding/invitations', (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        data: deleted
+          ? []
+          : [
+              {
+                ...employee,
+                id: 23,
+                profileId: 12,
+                status: 'SUBMITTED',
+                profileStatus: 'CREATED',
+                createdAt: '2026-11-20T09:00:00',
+              },
+            ],
+      },
+    }),
+  );
+  await page.route('**/api/hr/onboarding/employees/12', (route) =>
+    route.fulfill({ json: { code: 0, data: employee } }),
+  );
+  await page.route('**/api/hr/profiles/12', (route) => {
+    expect(route.request().method()).toBe('DELETE');
+    deleted = true;
+    return route.fulfill({ json: { code: 0, data: null } });
+  });
+  await page.goto('/system/employees');
+  await page.getByRole('button', { name: '查看档案' }).click();
+  const details = page.getByRole('dialog', { name: '人员档案' });
+  await expect(details.getByRole('button', { name: '删除档案' })).toHaveCount(0);
+  await details.getByRole('button', { name: /关\s*闭/ }).last().click();
+  await expect(page.getByRole('button', { name: '删除档案' })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: '删除档案' }).click();
+  const confirmation = page
+    .getByRole('dialog')
+    .filter({ hasText: '删除“档案测试员工”的人员档案？' });
+  await expect(
+    confirmation.getByText(/历史考勤和业务记录会保留/),
+  ).toBeVisible();
+  await expect.poll(() => deleted).toBe(false);
+  await confirmation.getByRole('button', { name: '删除档案' }).click();
+  await expect(page.getByText('人员档案已删除')).toBeVisible();
+  await expect(page.getByRole('button', { name: '查看档案' })).toHaveCount(0);
+});
